@@ -1,0 +1,141 @@
+### HoneyBack API - Testing Endpoints
+@baseUrl = http://localhost:5291/api
+@baseUrlHttp = http://localhost:5291/api
+
+### ========== PRUEBAS ==========
+
+### Verificar Conexión a la Base de Datos
+GET {{baseUrl}}/pruebas/verificar-conexion
+
+### Crear Datos de Prueba
+POST {{baseUrl}}/pruebas/datos-prueba
+
+### Limpiar Datos de Prueba
+DELETE {{baseUrl}}/pruebas/limpiar-datos-prueba
+
+### ========== USUARIOS ==========
+
+### Obtener todos los usuarios
+GET {{baseUrl}}/usuarios
+
+### Obtener usuario por ID
+GET {{baseUrl}}/usuarios/1
+
+### Obtener usuario por Email
+GET {{baseUrl}}/usuarios/email/maria@test.com
+
+### Crear nuevo usuario
+POST {{baseUrl}}/usuarios
+Content-Type: application/json
+
+{
+  "nombreCompleto": "Juan Pérez",
+  "email": "juan.perez@example.com",
+  "passwordHash": "hash123456"
+}
+
+### Actualizar usuario
+PUT {{baseUrl}}/usuarios/1
+Content-Type: application/json
+
+{
+  "nombreCompleto": "Juan Pérez Actualizado",
+  "email": "juan.perez@example.com",
+  "passwordHash": "newhash123456"
+}
+
+### Eliminar usuario
+DELETE {{baseUrl}}/usuarios/1
+
+### ========== REPORTES ==========
+
+### Obtener todos los reportes
+GET {{baseUrl}}/reportes
+
+### Obtener reporte por ID
+GET {{baseUrl}}/reportes/1
+
+### Obtener reportes por Usuario
+GET {{baseUrl}}/reportes/usuario/1
+
+### Obtener reportes por Estado
+GET {{baseUrl}}/reportes/estado/Pendiente
+
+### Crear nuevo reporte
+POST {{baseUrl}}/reportes
+Content-Type: application/json
+
+{
+  "nombre": "Reporte Mensual Enero",
+  "tipoReporte": "Mensual",
+  "descripcion": "Reporte financiero del mes de enero",
+  "usuarioId": 1
+}
+
+### Actualizar reporte
+PUT {{baseUrl}}/reportes/1
+Content-Type: application/json
+
+{
+  "nombre": "Reporte Mensual Enero Actualizado",
+  "tipoReporte": "Mensual",
+  "descripcion": "Reporte financiero actualizado del mes de enero",
+  "estado": "Completado"
+}
+
+### Eliminar reporte
+DELETE {{baseUrl}}/reportes/1
+
+### ========== SESIONES ==========
+
+### Obtener todas las sesiones
+GET {{baseUrl}}/sesiones
+
+### Obtener sesión por ID
+GET {{baseUrl}}/sesiones/1
+
+### Obtener sesiones por Usuario
+GET {{baseUrl}}/sesiones/usuario/1
+
+### Crear nueva sesión
+POST {{baseUrl}}/sesiones
+Content-Type: application/json
+
+{
+  "usuarioId": 1,
+  "tokenSesion": "token-abc123xyz",
+  "fechaExpiracion": "2024-12-31T23:59:59"
+}
+
+### Validar Token
+POST {{baseUrl}}/sesiones/validar
+Content-Type: application/json
+
+"token-abc123xyz"
+
+### Limpiar sesiones expiradas
+POST {{baseUrl}}/sesiones/limpiar-expiradas
+
+### Eliminar sesión
+DELETE {{baseUrl}}/sesiones/1
+
+### ========== MENSAJES DE CONTACTO ==========
+
+### Obtener todos los mensajes
+GET {{baseUrl}}/mensajescontacto
+
+### Obtener mensaje por ID
+GET {{baseUrl}}/mensajescontacto/1
+
+### Crear nuevo mensaje de contacto
+POST {{baseUrl}}/mensajescontacto
+Content-Type: application/json
+
+{
+  "nombre": "Ana García",
+  "email": "ana.garcia@example.com",
+  "mensaje": "Me gustaría obtener más información sobre sus servicios"
+}
+
+### Eliminar mensaje de contacto
+DELETE {{baseUrl}}/mensajescontacto/1
