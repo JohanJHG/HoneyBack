@@ -2,12 +2,10 @@
   "profiles": {
     "http": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "launchUrl": "api/pruebas/verificar-conexion",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Jwt__Key": "Johan3208365126*-SecureKey-2024-HoneyBalance!"
       },
-      "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:5291"
     },
     "IIS Express": {

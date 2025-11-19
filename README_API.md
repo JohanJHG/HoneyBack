@@ -1,5 +1,4 @@
 
-
 ## ?? Estructura del Proyecto
 
 ```
@@ -181,3 +180,28 @@ Para más información sobre Entity Framework Core:
 ---
 
 **¡Tu backend está completamente funcional y listo para ser consumido desde Angular! ??**
+
+## Autenticación JWT
+
+- Configuración en `appsettings.json` / `appsettings.Development.json`:
+```json
+"Jwt": {
+  "Issuer": "HoneyBack",
+  "Audience": "HoneyBack",
+  "ExpiresInMinutes": 60
+}
+```
+- Configurar Key en desarrollo (no en el repo):
+```
+dotnet user-secrets init
+dotnet user-secrets set "Jwt:Key" "<clave-256-bits>"
+```
+- Endpoints:
+  - POST `/api/auth/login` Body: `{ "email": "...", "password": "..." }`
+    - 200: `{ token, expiresAt, user }`
+    - 404: usuario no encontrado
+    - 401: contraseña incorrecta
+  - GET `/api/auth/me` [Authorize] con header `Authorization: Bearer <token>`
+- Swagger: botón Authorize disponible (esquema Bearer).
+- Expiración: 1 hora. `ClockSkew = 0`.
+- Nota migración: `api/sesiones` sigue disponible pero es deprecable; usar JWT.

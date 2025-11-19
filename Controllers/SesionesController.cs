@@ -1,6 +1,8 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using HoneyBack.DTOs;
 
 namespace HoneyBack.Controllers
 {
@@ -29,7 +31,7 @@ namespace HoneyBack.Controllers
             }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:long}")]
         public async Task<ActionResult<Sesione>> ObtenerPorId(long id)
         {
             try
@@ -46,7 +48,7 @@ namespace HoneyBack.Controllers
             }
         }
 
-        [HttpGet("usuario/{usuarioId}")]
+        [HttpGet("usuario/{usuarioId:int}")]
         public async Task<ActionResult<IEnumerable<Sesione>>> ObtenerPorUsuario(int usuarioId)
         {
             try
@@ -60,11 +62,28 @@ namespace HoneyBack.Controllers
             }
         }
 
+        // Acepta string plano o objeto con token/tokenSesion
         [HttpPost("validar")]
-        public async Task<ActionResult> ValidarToken([FromBody] string token)
+        [Consumes("application/json")]
+        public async Task<ActionResult> ValidarToken([FromBody] JsonElement payload)
         {
             try
             {
+                string? token = null;
+
+                if (payload.ValueKind == JsonValueKind.String)
+                {
+                    token = payload.GetString();
+                }
+                else if (payload.ValueKind == JsonValueKind.Object)
+                {
+                    if (payload.TryGetProperty("token", out var t)) token = t.GetString();
+                    else if (payload.TryGetProperty("tokenSesion", out var ts)) token = ts.GetString();
+                }
+
+                if (string.IsNullOrWhiteSpace(token))
+                    return BadRequest(new { mensaje = "Body inválido. Envíe un string JSON con el token o un objeto con 'token'/'tokenSesion'." });
+
                 var esValido = await _sesionesService.ValidarTokenAsync(token);
                 if (!esValido)
                     return Unauthorized(new { mensaje = "Token inválido o expirado" });
@@ -77,13 +96,21 @@ namespace HoneyBack.Controllers
             }
         }
 
+        // Usar DTO para evitar validación del navigation property Usuario
         [HttpPost]
-        public async Task<ActionResult<Sesione>> Crear([FromBody] Sesione sesion)
+        public async Task<ActionResult<Sesione>> Crear([FromBody] SesionCreateDto sesionDto)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
+
+                var sesion = new Sesione
+                {
+                    UsuarioId = sesionDto.UsuarioId,
+                    TokenSesion = sesionDto.TokenSesion,
+                    FechaExpiracion = sesionDto.FechaExpiracion
+                };
 
                 var nuevaSesion = await _sesionesService.CrearAsync(sesion);
                 return CreatedAtAction(nameof(ObtenerPorId), new { id = nuevaSesion.SesionId }, nuevaSesion);
@@ -94,7 +121,7 @@ namespace HoneyBack.Controllers
             }
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:long}")]
         public async Task<ActionResult> Eliminar(long id)
         {
             try

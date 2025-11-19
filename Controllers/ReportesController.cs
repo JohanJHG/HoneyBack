@@ -1,5 +1,6 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HoneyBack.Controllers
@@ -16,6 +17,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Reporte>>> ObtenerTodos()
         {
             try
@@ -30,6 +32,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<Reporte>> ObtenerPorId(int id)
         {
             try
@@ -47,6 +50,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet("usuario/{usuarioId}")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Reporte>>> ObtenerPorUsuario(int usuarioId)
         {
             try
@@ -61,6 +65,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet("estado/{estado}")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Reporte>>> ObtenerPorEstado(string estado)
         {
             try
@@ -75,6 +80,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult<Reporte>> Crear([FromBody] Reporte reporte)
         {
             try
@@ -92,6 +98,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<ActionResult<Reporte>> Actualizar(int id, [FromBody] Reporte reporte)
         {
             try
@@ -112,6 +119,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<ActionResult> Eliminar(int id)
         {
             try
