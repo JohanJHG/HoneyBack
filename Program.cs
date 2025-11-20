@@ -83,7 +83,14 @@ builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "HoneyBack API", Version = "v1" });
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+    { 
+        Title = "HoneyBack API", 
+        Version = "v1",
+        Description = "API de HoneyBack con autenticación JWT"
+    });
+    
+    // Definir el esquema de seguridad Bearer JWT
     var securityScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -91,12 +98,24 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = Microsoft.OpenApi.Models.ParameterLocation.Header,
-        Description = "Introduce 'Bearer {token}'"
+        Description = "Ingrese 'Bearer' seguido de un espacio y luego su token JWT.\n\nEjemplo: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     };
     c.AddSecurityDefinition("Bearer", securityScheme);
+    
+    // Requerir el esquema de seguridad globalmente
     var securityRequirement = new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
     {
-        { securityScheme, new string[] {} }
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
     };
     c.AddSecurityRequirement(securityRequirement);
 });

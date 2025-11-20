@@ -1,5 +1,6 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using HoneyBack.DTOs;
@@ -8,6 +9,7 @@ namespace HoneyBack.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize] // Proteger endpoints de sesiones
     public class SesionesController : ControllerBase
     {
         private readonly ISesionesService _sesionesService;
@@ -64,6 +66,7 @@ namespace HoneyBack.Controllers
 
         // Acepta string plano o objeto con token/tokenSesion
         [HttpPost("validar")]
+        [AllowAnonymous] // Permitir validación sin autenticación
         [Consumes("application/json")]
         public async Task<ActionResult> ValidarToken([FromBody] JsonElement payload)
         {
@@ -96,8 +99,9 @@ namespace HoneyBack.Controllers
             }
         }
 
-        // Usar DTO para evitar validación del navigation property Usuario
+        // Este endpoint NO debe ser público - solo AuthController debe crear sesiones
         [HttpPost]
+        [ApiExplorerSettings(IgnoreApi = true)] // Ocultar de Swagger
         public async Task<ActionResult<Sesione>> Crear([FromBody] SesionCreateDto sesionDto)
         {
             try
@@ -139,6 +143,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpPost("limpiar-expiradas")]
+        [AllowAnonymous] // Puede ser llamado por un job o manualmente
         public async Task<ActionResult> LimpiarSesionesExpiradas()
         {
             try

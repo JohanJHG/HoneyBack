@@ -1,11 +1,14 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
+using HoneyBack.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HoneyBack.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize] // Proteger todos los endpoints de usuarios
     public class UsuariosController : ControllerBase
     {
         private readonly IUsuariosService _usuariosService;
@@ -16,12 +19,22 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Usuario>>> ObtenerTodos()
+        public async Task<ActionResult<IEnumerable<UsuarioResponseDto>>> ObtenerTodos()
         {
             try
             {
                 var usuarios = await _usuariosService.ObtenerTodosAsync();
-                return Ok(usuarios);
+                
+                // Mapear a DTO sin PasswordHash
+                var response = usuarios.Select(u => new UsuarioResponseDto
+                {
+                    UsuarioId = u.UsuarioId,
+                    NombreCompleto = u.NombreCompleto,
+                    Email = u.Email,
+                    FechaRegistro = u.FechaRegistro
+                });
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -30,7 +43,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Usuario>> ObtenerPorId(int id)
+        public async Task<ActionResult<UsuarioResponseDto>> ObtenerPorId(int id)
         {
             try
             {
@@ -38,7 +51,16 @@ namespace HoneyBack.Controllers
                 if (usuario == null)
                     return NotFound(new { mensaje = "Usuario no encontrado" });
 
-                return Ok(usuario);
+                // Mapear a DTO sin PasswordHash
+                var response = new UsuarioResponseDto
+                {
+                    UsuarioId = usuario.UsuarioId,
+                    NombreCompleto = usuario.NombreCompleto,
+                    Email = usuario.Email,
+                    FechaRegistro = usuario.FechaRegistro
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -47,7 +69,7 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet("email/{email}")]
-        public async Task<ActionResult<Usuario>> ObtenerPorEmail(string email)
+        public async Task<ActionResult<UsuarioResponseDto>> ObtenerPorEmail(string email)
         {
             try
             {
@@ -55,7 +77,16 @@ namespace HoneyBack.Controllers
                 if (usuario == null)
                     return NotFound(new { mensaje = "Usuario no encontrado" });
 
-                return Ok(usuario);
+                // Mapear a DTO sin PasswordHash
+                var response = new UsuarioResponseDto
+                {
+                    UsuarioId = usuario.UsuarioId,
+                    NombreCompleto = usuario.NombreCompleto,
+                    Email = usuario.Email,
+                    FechaRegistro = usuario.FechaRegistro
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -63,39 +94,35 @@ namespace HoneyBack.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Usuario>> Crear([FromBody] Usuario usuario)
-        {
-            try
-            {
-                if (!ModelState.IsValid)
-                    return BadRequest(ModelState);
-
-                if (await _usuariosService.ExisteEmailAsync(usuario.Email))
-                    return Conflict(new { mensaje = "El email ya está registrado" });
-
-                var nuevoUsuario = await _usuariosService.CrearAsync(usuario);
-                return CreatedAtAction(nameof(ObtenerPorId), new { id = nuevoUsuario.UsuarioId }, nuevoUsuario);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { mensaje = "Error al crear usuario", error = ex.Message });
-            }
-        }
-
         [HttpPut("{id}")]
-        public async Task<ActionResult<Usuario>> Actualizar(int id, [FromBody] Usuario usuario)
+        public async Task<ActionResult<UsuarioResponseDto>> Actualizar(int id, [FromBody] UsuarioUpdateDto usuarioDto)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
+
+                var usuario = new Usuario
+                {
+                    NombreCompleto = usuarioDto.NombreCompleto,
+                    Email = usuarioDto.Email,
+                    PasswordHash = string.Empty // No actualizar password desde este endpoint
+                };
 
                 var usuarioActualizado = await _usuariosService.ActualizarAsync(id, usuario);
                 if (usuarioActualizado == null)
                     return NotFound(new { mensaje = "Usuario no encontrado" });
 
-                return Ok(usuarioActualizado);
+                // Mapear a DTO sin PasswordHash
+                var response = new UsuarioResponseDto
+                {
+                    UsuarioId = usuarioActualizado.UsuarioId,
+                    NombreCompleto = usuarioActualizado.NombreCompleto,
+                    Email = usuarioActualizado.Email,
+                    FechaRegistro = usuarioActualizado.FechaRegistro
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {

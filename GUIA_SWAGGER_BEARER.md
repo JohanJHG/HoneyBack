@@ -1,0 +1,333 @@
+# ?? GUÍA: Cómo usar Bearer Authentication en Swagger
+
+## ?? Ubicación de la Configuración
+
+La configuración de Bearer Authentication en Swagger está en:
+- **Archivo:** `Program.cs`
+- **Líneas:** 85-115 (aproximadamente)
+
+---
+
+## ? Configuración Actual
+
+```csharp
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo 
+    { 
+        Title = "HoneyBack API", 
+        Version = "v1",
+        Description = "API de HoneyBack con autenticación JWT"
+    });
+    
+    // Definir el esquema de seguridad Bearer JWT
+    var securityScheme = new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Ingrese 'Bearer' seguido de un espacio y luego su token JWT"
+    };
+    c.AddSecurityDefinition("Bearer", securityScheme);
+    
+    // Requerir el esquema de seguridad globalmente
+    var securityRequirement = new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    };
+    c.AddSecurityRequirement(securityRequirement);
+});
+```
+
+---
+
+## ?? Cómo Usar en Swagger UI
+
+### Paso 1: Acceder a Swagger
+1. Ejecuta tu aplicación (F5)
+2. Abre tu navegador
+3. Ve a: `http://localhost:5291/swagger`
+
+### Paso 2: Obtener un Token JWT
+
+#### Opción A: Usar el endpoint de Login en Swagger
+1. Busca el endpoint `POST /api/auth/login`
+2. Haz clic en "Try it out"
+3. Ingresa las credenciales:
+```json
+{
+  "email": "usuario@example.com",
+  "password": "contraseña123"
+}
+```
+4. Haz clic en "Execute"
+5. **Copia el token** de la respuesta
+
+**Respuesta esperada:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwiZW1haWwiOiJ1c3VhcmlvQGV4YW1wbGUuY29tIiwibmFtZSI6Ikp1YW4gUMOpcmV6IiwibmJmIjoxNzA1NjczMTAwLCJleHAiOjE3MDU2NzY3MDAsImlhdCI6MTcwNTY3MzEwMCwiaXNzIjoiSG9uZXlCYWNrIiwiYXVkIjoiSG9uZXlCYWNrIn0.abc123...",
+  "expiresAt": "2025-01-19T15:30:00.000Z",
+  "usuario": {
+    "usuarioId": 1,
+    "nombreCompleto": "Juan Pérez",
+    "email": "usuario@example.com",
+    "fechaRegistro": "2025-01-01T00:00:00.000Z"
+  }
+}
+```
+
+#### Opción B: Registrar un nuevo usuario
+1. Usa `POST /api/auth/register` para crear un usuario
+2. Luego usa `POST /api/auth/login` para obtener el token
+
+### Paso 3: Autenticarse en Swagger
+
+1. **Busca el botón "Authorize"** en la esquina superior derecha de Swagger UI
+   - Tiene un ícono de candado ??
+   
+2. **Haz clic en "Authorize"**
+
+3. **Aparecerá un modal con:**
+   - Campo: "Value"
+   - Placeholder: "Bearer eyJhbGci..."
+   
+4. **Ingresa tu token en uno de estos formatos:**
+   
+   **Formato 1 (Recomendado):**
+   ```
+   Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   ```
+   
+   **Formato 2 (Solo el token):**
+   ```
+   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   ```
+   (Swagger agregará automáticamente "Bearer ")
+
+5. **Haz clic en "Authorize"**
+
+6. **Verifica que está autenticado:**
+   - El candado ?? ahora debe estar cerrado
+   - Verás un mensaje: "Authorized"
+
+### Paso 4: Probar Endpoints Protegidos
+
+Ahora puedes probar cualquier endpoint marcado con ??:
+
+**Ejemplos de endpoints protegidos:**
+- `GET /api/auth/me` - Ver tu perfil
+- `GET /api/usuarios` - Listar usuarios
+- `POST /api/auth/cambiar-password` - Cambiar contraseña
+- `POST /api/auth/logout` - Cerrar sesión
+
+**Endpoints públicos (sin ??):**
+- `POST /api/auth/login`
+- `POST /api/auth/register`
+- `GET /api/reportes`
+- `POST /api/mensajescontacto`
+
+---
+
+## ?? Interfaz de Swagger
+
+### Botón "Authorize" (Antes de autenticarse)
+```
+???????????????????????????????????????
+? ?? Authorize                        ?
+???????????????????????????????????????
+```
+
+### Modal de Autorización
+```
+??????????????????????????????????????????????????
+? Available authorizations                       ?
+?                                                ?
+? Bearer (http, Bearer)                          ?
+? ?????????????????????????????????????????????? ?
+? ? Value                                      ? ?
+? ? Bearer eyJhbGci...                         ? ?
+? ?????????????????????????????????????????????? ?
+?                                                ?
+? Ingrese 'Bearer' seguido de un espacio y      ?
+? luego su token JWT                             ?
+?                                                ?
+? [Authorize]  [Close]                           ?
+??????????????????????????????????????????????????
+```
+
+### Botón "Authorize" (Después de autenticarse)
+```
+???????????????????????????????????????
+? ?? Authorize                        ?
+???????????????????????????????????????
+```
+
+### Endpoints con Candado
+```
+?? GET /api/auth/me
+   Obtener usuario autenticado actual
+   
+?? GET /api/usuarios
+   Lista de usuarios
+   
+?? POST /api/auth/login
+   Login con email y password
+```
+
+---
+
+## ?? Verificación
+
+### ? Configuración Correcta
+
+Si tu configuración es correcta, verás:
+
+1. **Botón "Authorize"** en la esquina superior derecha
+2. **Candados ??** junto a endpoints protegidos
+3. **Modal de autorización** con campo "Bearer (http, Bearer)"
+4. **Descripción:** "Ingrese 'Bearer' seguido de un espacio y luego su token JWT"
+
+### ? Problemas Comunes
+
+#### Problema 1: No aparece el botón "Authorize"
+**Solución:** Verifica que tienes en `Program.cs`:
+```csharp
+c.AddSecurityDefinition("Bearer", securityScheme);
+c.AddSecurityRequirement(securityRequirement);
+```
+
+#### Problema 2: Token no funciona (401 Unauthorized)
+**Causas posibles:**
+- Token expirado (duración: 60 minutos)
+- Token incorrecto
+- No agregaste "Bearer " antes del token
+- JWT Key incorrecta
+
+**Verificar JWT Key:**
+```bash
+# En launchSettings.json debe estar:
+"Jwt__Key": "Johan3208365126*-SecureKey-2024-HoneyBalance!"
+```
+
+#### Problema 3: Endpoints no muestran candado
+**Solución:** Verifica que el controlador tenga `[Authorize]`:
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+[Authorize] // <-- Debe estar aquí
+public class UsuariosController : ControllerBase
+```
+
+---
+
+## ?? Prueba Completa
+
+### Test Completo de Autenticación:
+
+```bash
+# 1. Registrar usuario
+POST /api/auth/register
+{
+  "nombreCompleto": "Test User",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+# 2. Hacer login
+POST /api/auth/login
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+# 3. Copiar el token de la respuesta
+
+# 4. Hacer clic en "Authorize" en Swagger
+# 5. Pegar: Bearer {token}
+# 6. Hacer clic en "Authorize"
+
+# 7. Probar endpoint protegido
+GET /api/auth/me
+# Debería devolver tu información
+
+# 8. Cambiar contraseña
+POST /api/auth/cambiar-password
+{
+  "passwordActual": "password123",
+  "passwordNueva": "newpassword456"
+}
+
+# 9. Cerrar sesión
+POST /api/auth/logout
+
+# 10. Intentar usar /api/auth/me de nuevo
+# Debería dar error 401 (token invalidado)
+```
+
+---
+
+## ?? Resumen de Configuración
+
+| Componente | Ubicación | Estado |
+|------------|-----------|--------|
+| **AddSecurityDefinition** | Program.cs | ? Configurado |
+| **AddSecurityRequirement** | Program.cs | ? Configurado |
+| **Bearer Scheme** | Program.cs | ? "bearer" |
+| **BearerFormat** | Program.cs | ? "JWT" |
+| **Description** | Program.cs | ? Presente |
+| **Authorization Header** | Automático | ? OK |
+
+---
+
+## ?? Resultado Final
+
+Con esta configuración, tu Swagger UI tendrá:
+
+? Botón "Authorize" visible
+? Modal con campo "Bearer (http, Bearer)"
+? Candados ?? en endpoints protegidos
+? Autenticación funcional con JWT
+? Header "Authorization: Bearer {token}" automático
+
+---
+
+## ?? Notas Importantes
+
+1. **Token Expiration:** Los tokens expiran en 60 minutos
+2. **Formato del Token:** Debe empezar con "Bearer " (con espacio)
+3. **Case Sensitive:** "Bearer" debe estar con mayúscula inicial
+4. **Logout:** Invalida el token en la base de datos
+5. **Multiple Tokens:** Puedes tener múltiples sesiones activas
+
+---
+
+## ?? Referencias
+
+- **JWT Official:** https://jwt.io/
+- **Swagger OpenAPI:** https://swagger.io/docs/specification/authentication/bearer-authentication/
+- **ASP.NET Core JWT:** https://docs.microsoft.com/en-us/aspnet/core/security/authentication/
+
+---
+
+**Estado:** ? CONFIGURADO Y FUNCIONANDO
+
+**Ubicación:** `Program.cs` líneas 85-115
+
+**Última actualización:** $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+
+---
+
+*HoneyBack API - Swagger Bearer Authentication Guide*

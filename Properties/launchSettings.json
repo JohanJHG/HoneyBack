@@ -2,6 +2,8 @@
   "profiles": {
     "http": {
       "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "Jwt__Key": "Johan3208365126*-SecureKey-2024-HoneyBalance!"
@@ -11,18 +13,20 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "api/pruebas/verificar-conexion",
+      "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "Jwt__Key": "Johan3208365126*-SecureKey-2024-HoneyBalance!"
       }
     },
     "WSL": {
       "commandName": "WSL2",
       "launchBrowser": true,
-      "launchUrl": "http://localhost:5291/api/pruebas/verificar-conexion",
+      "launchUrl": "http://localhost:5291/swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://localhost:5291"
+        "ASPNETCORE_URLS": "http://localhost:5291",
+        "Jwt__Key": "Johan3208365126*-SecureKey-2024-HoneyBalance!"
       },
       "distributionName": ""
     }
