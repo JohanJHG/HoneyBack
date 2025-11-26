@@ -1,0 +1,55 @@
+version: "3.9"
+
+services:
+  # SQL Server Database
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: honeyback_sql
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Johan3208365126*
+      - MSSQL_PID=Express
+    ports:
+      - "1434:1433"  # Puerto 1434 en host, 1433 en contenedor (evita conflicto con SQL local)
+    volumes:
+      - sql_data:/var/opt/mssql
+      - ./backups:/var/opt/mssql/backup
+    networks:
+      - honeyback-network
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "Johan3208365126*" -Q "SELECT 1" -C || exit 1
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # HoneyBack API
+  honeyback_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: honeyback_api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__conexion=Server=sqlserver;Database=HoneyBalanceDB;User Id=sa;Password=Johan3208365126*;TrustServerCertificate=True;Encrypt=True;MultipleActiveResultSets=true
+      - Jwt__Issuer=HoneyBack
+      - Jwt__Audience=HoneyBack
+      - Jwt__Key=Johan3208365126*-SecureKey-2024-HoneyBalance!
+      - Jwt__ExpiresInMinutes=60
+    ports:
+      - "5291:80"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    networks:
+      - honeyback-network
+    restart: unless-stopped
+
+volumes:
+  sql_data:
+
+networks:
+  honeyback-network:
+    driver: bridge
