@@ -19,5 +19,15 @@ public partial class Reporte
 
     public int? UsuarioId { get; set; }
 
+    public string? Parametros { get; set; }
+
+    public DateOnly? FechaInicio { get; set; }
+
+    public DateOnly? FechaFin { get; set; }
+
+    public string? ArchivoUrl { get; set; }
+
+    public DateTime? FechaGeneracion { get; set; }
+
     public virtual Usuario? Usuario { get; set; }
 }

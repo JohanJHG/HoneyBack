@@ -24,6 +24,11 @@ builder.Services.AddScoped<IUsuariosService, UsuariosService>();
 builder.Services.AddScoped<IReportesService, ReportesService>();
 builder.Services.AddScoped<ISesionesService, SesionesService>();
 builder.Services.AddScoped<IMensajesContactoService, MensajesContactoService>();
+builder.Services.AddScoped<ICategoriasTransaccionesService, CategoriasTransaccionesService>();
+builder.Services.AddScoped<IMetasAhorroService, MetasAhorroService>();
+builder.Services.AddScoped<IEstadisticasMensualesService, EstadisticasMensualesService>();
+builder.Services.AddScoped<ITemplatesService, TemplatesService>();
+builder.Services.AddScoped<IConfiguracionesUsuarioService, ConfiguracionesUsuarioService>();
 // JWT Token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
