@@ -15,6 +15,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="GUIA_SWAGGER_BEARER.md" />
+    <None Remove="INFORME_CAMBIOS_AUTENTICACION.md" />
+    <None Remove="INFORME_IMPLEMENTACION_COMPLETA.md" />
+    <None Remove="INFORME_VALIDACION_COMPLETA.md" />
+    <None Remove="README_API.md" />
+    <None Remove="REQUERIMIENTOS_FRONTEND_ANGULAR.md" />
+    <None Remove="test-api.ps1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
