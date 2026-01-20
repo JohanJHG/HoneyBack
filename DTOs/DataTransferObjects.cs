@@ -175,6 +175,12 @@ namespace HoneyBack.DTOs
         [StringLength(1000)]
         public string? Descripcion { get; set; }
 
+        /// <summary>
+        /// Categoria: ahorro, vivienda, vacaciones, educacion, vehiculo, emergencia, tecnologia, otro
+        /// </summary>
+        [StringLength(50)]
+        public string? Categoria { get; set; } = "otro";
+
         [Required(ErrorMessage = "El monto objetivo es requerido")]
         [Range(0.01, double.MaxValue, ErrorMessage = "El monto objetivo debe ser mayor a 0")]
         public decimal MontoObjetivo { get; set; }
@@ -188,7 +194,7 @@ namespace HoneyBack.DTOs
         public DateOnly? FechaObjetivo { get; set; }
 
         [StringLength(7)]
-        [RegularExpression(@"^#([A-Fa-f0-9]{6})$", ErrorMessage = "El color debe ser en formato hexadecimal")]
+        [RegularExpression(@"^#([A-Fa-f0-9]{6})$", ErrorMessage = "El color debe ser en formato hexadecimal (ej: #FFD8A9)")]
         public string? Color { get; set; }
 
         [StringLength(50)]
@@ -206,6 +212,12 @@ namespace HoneyBack.DTOs
 
         [StringLength(1000)]
         public string? Descripcion { get; set; }
+
+        /// <summary>
+        /// Categoria: ahorro, vivienda, vacaciones, educacion, vehiculo, emergencia, tecnologia, otro
+        /// </summary>
+        [StringLength(50)]
+        public string? Categoria { get; set; }
 
         [Required]
         [Range(0.01, double.MaxValue)]
@@ -236,6 +248,7 @@ namespace HoneyBack.DTOs
         public int UsuarioId { get; set; }
         public string Nombre { get; set; } = null!;
         public string? Descripcion { get; set; }
+        public string Categoria { get; set; } = "otro";
         public decimal MontoObjetivo { get; set; }
         public decimal MontoActual { get; set; }
         public DateOnly FechaInicio { get; set; }

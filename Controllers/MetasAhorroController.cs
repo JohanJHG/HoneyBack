@@ -103,11 +103,12 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var meta = new MetasAhorro
+                var meta = new MetasAhorro  
                 {
                     UsuarioId = metaDto.UsuarioId,
                     Nombre = metaDto.Nombre,
                     Descripcion = metaDto.Descripcion,
+                    Categoria = metaDto.Categoria ?? "otro",
                     MontoObjetivo = metaDto.MontoObjetivo,
                     MontoActual = metaDto.MontoActual ?? 0,
                     FechaObjetivo = metaDto.FechaObjetivo,
@@ -137,6 +138,7 @@ namespace HoneyBack.Controllers
                 {
                     Nombre = metaDto.Nombre,
                     Descripcion = metaDto.Descripcion,
+                    Categoria = metaDto.Categoria ?? "otro",
                     MontoObjetivo = metaDto.MontoObjetivo,
                     MontoActual = metaDto.MontoActual,
                     FechaObjetivo = metaDto.FechaObjetivo,
@@ -221,6 +223,7 @@ namespace HoneyBack.Controllers
                 UsuarioId = meta.UsuarioId,
                 Nombre = meta.Nombre,
                 Descripcion = meta.Descripcion,
+                Categoria = meta.Categoria ?? "otro",
                 MontoObjetivo = meta.MontoObjetivo,
                 MontoActual = meta.MontoActual ?? 0,
                 FechaInicio = meta.FechaInicio,

@@ -3,7 +3,9 @@ using HoneyBack.Models;
 using HoneyBack.Servicios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using BCrypt.Net;
 
 namespace HoneyBack.Controllers
@@ -15,15 +17,27 @@ namespace HoneyBack.Controllers
         private readonly IUsuariosService _usuariosService;
         private readonly ISesionesService _sesionesService;
         private readonly IJwtTokenService _jwtTokenService;
+        private readonly IEmailService _emailService;
+        private readonly HoneyBalanceDbContext _context;
+        private readonly ILogger<AuthController> _logger;
+
+        // Duración del token de recuperación en minutos
+        private const int TokenExpirationMinutes = 15;
 
         public AuthController(
             IUsuariosService usuariosService,
             ISesionesService sesionesService,
-            IJwtTokenService jwtTokenService)
+            IJwtTokenService jwtTokenService,
+            IEmailService emailService,
+            HoneyBalanceDbContext context,
+            ILogger<AuthController> logger)
         {
             _usuariosService = usuariosService;
             _sesionesService = sesionesService;
             _jwtTokenService = jwtTokenService;
+            _emailService = emailService;
+            _context = context;
+            _logger = logger;
         }
 
         /// <summary>
@@ -280,6 +294,153 @@ namespace HoneyBack.Controllers
             }
 
             return Ok(new { message = "Sesión cerrada exitosamente" });
+        }
+
+        /// <summary>
+        /// Solicita un código de recuperación de contraseña.
+        /// Siempre devuelve respuesta genérica para evitar enumeración de emails.
+        /// </summary>
+        [HttpPost("forgot-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
+        {
+            // Respuesta genérica por seguridad (no revela si el email existe)
+            var genericResponse = new { mensaje = "Si el email esta registrado, recibiras un codigo de recuperacion en tu correo." };
+
+            try
+            {
+                // Buscar usuario por email (case-insensitive)
+                var usuario = await _usuariosService.ObtenerPorEmailAsync(request.Email.ToLower().Trim());
+
+                // Si no existe, retornar respuesta genérica (seguridad: no revelar si email existe)
+                if (usuario == null)
+                {
+                    _logger.LogInformation("Intento de recuperacion para email no registrado: {Email}", request.Email);
+                    return Ok(genericResponse);
+                }
+
+                // Invalidar tokens anteriores no usados del usuario
+                var tokensAnteriores = await _context.PasswordResetTokens
+                    .Where(t => t.UsuarioId == usuario.UsuarioId && !t.Used)
+                    .ToListAsync();
+
+                foreach (var tokenAnterior in tokensAnteriores)
+                {
+                    tokenAnterior.Used = true;
+                }
+
+                // Generar código de 6 dígitos criptográficamente seguro
+                var token = GenerateSecureToken();
+
+                // Crear registro de token
+                var resetToken = new PasswordResetToken
+                {
+                    UsuarioId = usuario.UsuarioId,
+                    Token = token,
+                    CreatedAtUtc = DateTime.UtcNow,
+                    ExpiresAtUtc = DateTime.UtcNow.AddMinutes(TokenExpirationMinutes),
+                    Used = false
+                };
+
+                _context.PasswordResetTokens.Add(resetToken);
+                await _context.SaveChangesAsync();
+
+                // Enviar email con el código
+                var emailSent = await _emailService.SendPasswordResetEmailAsync(
+                    usuario.Email,
+                    usuario.NombreCompleto ?? usuario.Email,
+                    token
+                );
+
+                if (!emailSent)
+                {
+                    _logger.LogWarning("No se pudo enviar email de recuperacion a {Email}", usuario.Email);
+                }
+
+                _logger.LogInformation(
+                    "Codigo de recuperacion generado para UsuarioId: {UserId}. Email enviado: {EmailSent}",
+                    usuario.UsuarioId, emailSent);
+
+                return Ok(genericResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en ForgotPassword para {Email}", request.Email);
+                return StatusCode(500, new { mensaje = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
+        /// Restablece la contraseña usando el código de verificación.
+        /// </summary>
+        [HttpPost("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
+        {
+            try
+            {
+                // Buscar token válido (no usado y no expirado)
+                var resetToken = await _context.PasswordResetTokens
+                    .Include(t => t.Usuario)
+                    .FirstOrDefaultAsync(t =>
+                        t.Token == request.Token &&
+                        !t.Used &&
+                        t.ExpiresAtUtc > DateTime.UtcNow);
+
+                // Validar token
+                if (resetToken == null)
+                {
+                    _logger.LogWarning("Intento de reset con token invalido o expirado: {Token}", request.Token);
+                    return BadRequest(new { mensaje = "El codigo es invalido o ha expirado. Solicita uno nuevo." });
+                }
+
+                // Validar que el usuario existe
+                if (resetToken.Usuario == null)
+                {
+                    _logger.LogWarning("Token {Token} asociado a usuario inexistente", request.Token);
+                    return BadRequest(new { mensaje = "Usuario no encontrado" });
+                }
+
+                // Hash de la nueva contraseña con BCrypt (work factor 12)
+                var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
+
+                // Actualizar contraseña del usuario
+                resetToken.Usuario.PasswordHash = hashedPassword;
+                resetToken.Usuario.FechaUltimaActualizacion = DateTime.UtcNow;
+
+                // Marcar token como usado
+                resetToken.Used = true;
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Contrasena restablecida exitosamente para UsuarioId: {UserId}",
+                    resetToken.UsuarioId);
+
+                return Ok(new { mensaje = "Contrasena restablecida exitosamente. Ya puedes iniciar sesion." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error en ResetPassword");
+                return StatusCode(500, new { mensaje = "Error interno del servidor" });
+            }
+        }
+
+        /// <summary>
+        /// Genera un código numérico de 6 dígitos usando un generador criptográficamente seguro.
+        /// </summary>
+        private static string GenerateSecureToken()
+        {
+            // Usar RandomNumberGenerator para seguridad criptográfica
+            var bytes = new byte[4];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(bytes);
+            }
+            
+            // Convertir a número positivo y tomar módulo para 6 dígitos
+            var number = Math.Abs(BitConverter.ToInt32(bytes, 0)) % 900000 + 100000;
+            return number.ToString();
         }
 
         private bool IsValidEmail(string email)

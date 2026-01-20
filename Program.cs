@@ -3,6 +3,7 @@ using HoneyBack.Servicios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Resend;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -31,6 +32,25 @@ builder.Services.AddScoped<ITemplatesService, TemplatesService>();
 builder.Services.AddScoped<IConfiguracionesUsuarioService, ConfiguracionesUsuarioService>();
 // JWT Token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+// Configurar Resend para envío de emails
+var resendApiKey = builder.Configuration["Resend:ApiKey"];
+if (!string.IsNullOrWhiteSpace(resendApiKey))
+{
+    builder.Services.AddOptions();
+    builder.Services.AddHttpClient<IResend, ResendClient>();
+    builder.Services.Configure<ResendClientOptions>(options =>
+    {
+        options.ApiToken = resendApiKey;
+    });
+    builder.Services.AddScoped<IEmailService, ResendEmailService>();
+}
+else
+{
+    // Fallback: servicio que no envía emails (solo logging)
+    builder.Services.AddScoped<IEmailService, NoOpEmailService>();
+    Console.WriteLine("[ADVERTENCIA] Resend:ApiKey no configurada. Los emails no se enviaran. Configure con: dotnet user-secrets set \"Resend:ApiKey\" \"<tu-api-key>\"");
+}
 
 // Configurar CORS para Angular
 builder.Services.AddCors(options =>

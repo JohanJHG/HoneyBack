@@ -13,6 +13,11 @@ public partial class MetasAhorro
 
     public string? Descripcion { get; set; }
 
+    /// <summary>
+    /// Categoria de la meta: ahorro, vivienda, vacaciones, educacion, vehiculo, emergencia, tecnologia, otro
+    /// </summary>
+    public string Categoria { get; set; } = "otro";
+
     public decimal MontoObjetivo { get; set; }
 
     public decimal? MontoActual { get; set; }

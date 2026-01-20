@@ -33,6 +33,8 @@ public partial class HoneyBalanceDbContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
+    public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // Solo configurar si no hay opciones previas (para design-time/migraciones)
@@ -182,6 +184,9 @@ public partial class HoneyBalanceDbContext : DbContext
 
             entity.Property(e => e.MetaId).HasColumnName("MetaID");
             entity.Property(e => e.Activa).HasDefaultValue(true);
+            entity.Property(e => e.Categoria)
+                .HasMaxLength(50)
+                .HasDefaultValue("otro");
             entity.Property(e => e.Color)
                 .HasMaxLength(7)
                 .HasDefaultValue("#FFD8A9");
@@ -311,6 +316,35 @@ public partial class HoneyBalanceDbContext : DbContext
                 .HasMaxLength(3)
                 .HasDefaultValue("COP");
             entity.Property(e => e.Telefono).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.HasKey(e => e.TokenId).HasName("PK_PasswordResetTokens");
+
+            entity.ToTable("PasswordResetTokens");
+
+            entity.HasIndex(e => e.Token, "IDX_PasswordResetTokens_Token");
+            entity.HasIndex(e => e.UsuarioId, "IDX_PasswordResetTokens_Usuario");
+            entity.HasIndex(e => new { e.UsuarioId, e.Used, e.ExpiresAtUtc }, "IDX_PasswordResetTokens_Active");
+
+            entity.Property(e => e.TokenId).HasColumnName("TokenID");
+            entity.Property(e => e.UsuarioId).HasColumnName("UsuarioID");
+            entity.Property(e => e.Token)
+                .HasMaxLength(6)
+                .IsFixedLength();
+            entity.Property(e => e.CreatedAtUtc)
+                .HasColumnType("datetime2");
+            entity.Property(e => e.ExpiresAtUtc)
+                .HasColumnType("datetime2");
+            entity.Property(e => e.Used)
+                .HasDefaultValue(false);
+
+            entity.HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PasswordResetTokens_Usuarios");
         });
 
         OnModelCreatingPartial(modelBuilder);
