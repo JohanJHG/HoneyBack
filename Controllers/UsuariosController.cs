@@ -1,6 +1,7 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using HoneyBack.DTOs;
+using HoneyBack.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,7 +9,7 @@ namespace HoneyBack.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Proteger todos los endpoints de usuarios
+    [Authorize]
     public class UsuariosController : ControllerBase
     {
         private readonly IUsuariosService _usuariosService;
@@ -18,27 +19,37 @@ namespace HoneyBack.Controllers
             _usuariosService = usuariosService;
         }
 
+        /// <summary>
+        /// Obtiene el perfil del usuario autenticado
+        /// NOTA: El endpoint GET global de todos los usuarios debería estar restringido a administradores
+        /// Por seguridad, este endpoint ahora retorna solo el perfil del usuario autenticado
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<UsuarioResponseDto>>> ObtenerTodos()
+        public async Task<ActionResult<UsuarioResponseDto>> ObtenerMiPerfil()
         {
             try
             {
-                var usuarios = await _usuariosService.ObtenerTodosAsync();
-                
-                // Mapear a DTO sin PasswordHash
-                var response = usuarios.Select(u => new UsuarioResponseDto
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                var usuario = await _usuariosService.ObtenerPorIdAsync(userId.Value);
+                if (usuario == null)
+                    return NotFound(new { mensaje = "Usuario no encontrado" });
+
+                var response = new UsuarioResponseDto
                 {
-                    UsuarioId = u.UsuarioId,
-                    NombreCompleto = u.NombreCompleto,
-                    Email = u.Email,
-                    FechaRegistro = u.FechaRegistro
-                });
+                    UsuarioId = usuario.UsuarioId,
+                    NombreCompleto = usuario.NombreCompleto,
+                    Email = usuario.Email,
+                    FechaRegistro = usuario.FechaRegistro
+                };
 
                 return Ok(response);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al obtener usuarios", error = ex.Message });
+                return StatusCode(500, new { mensaje = "Error al obtener usuario", error = ex.Message });
             }
         }
 
@@ -47,11 +58,18 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede ver su propio perfil
+                if (id != userId.Value)
+                    return Forbid();
+
                 var usuario = await _usuariosService.ObtenerPorIdAsync(id);
                 if (usuario == null)
                     return NotFound(new { mensaje = "Usuario no encontrado" });
 
-                // Mapear a DTO sin PasswordHash
                 var response = new UsuarioResponseDto
                 {
                     UsuarioId = usuario.UsuarioId,
@@ -73,11 +91,18 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var usuario = await _usuariosService.ObtenerPorEmailAsync(email);
                 if (usuario == null)
                     return NotFound(new { mensaje = "Usuario no encontrado" });
 
-                // Mapear a DTO sin PasswordHash
+                // Solo puede ver su propio perfil
+                if (usuario.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var response = new UsuarioResponseDto
                 {
                     UsuarioId = usuario.UsuarioId,
@@ -102,6 +127,14 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede actualizar su propio perfil
+                if (id != userId.Value)
+                    return Forbid();
+
                 var usuario = new Usuario
                 {
                     NombreCompleto = usuarioDto.NombreCompleto,
@@ -113,7 +146,6 @@ namespace HoneyBack.Controllers
                 if (usuarioActualizado == null)
                     return NotFound(new { mensaje = "Usuario no encontrado" });
 
-                // Mapear a DTO sin PasswordHash
                 var response = new UsuarioResponseDto
                 {
                     UsuarioId = usuarioActualizado.UsuarioId,
@@ -135,6 +167,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede eliminar su propio perfil
+                if (id != userId.Value)
+                    return Forbid();
+
                 var resultado = await _usuariosService.EliminarAsync(id);
                 if (!resultado)
                     return NotFound(new { mensaje = "Usuario no encontrado" });

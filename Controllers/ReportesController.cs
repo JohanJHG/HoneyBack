@@ -1,5 +1,6 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
+using HoneyBack.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,7 @@ namespace HoneyBack.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize] // Agregar autorización global
     public class ReportesController : ControllerBase
     {
         private readonly IReportesService _reportesService;
@@ -16,13 +18,19 @@ namespace HoneyBack.Controllers
             _reportesService = reportesService;
         }
 
+        /// <summary>
+        /// Obtiene todos los reportes del usuario autenticado
+        /// </summary>
         [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<Reporte>>> ObtenerTodos()
+        public async Task<ActionResult<IEnumerable<Reporte>>> ObtenerMisReportes()
         {
             try
             {
-                var reportes = await _reportesService.ObtenerTodosAsync();
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                var reportes = await _reportesService.ObtenerPorUsuarioAsync(userId.Value);
                 return Ok(reportes);
             }
             catch (Exception ex)
@@ -32,14 +40,21 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet("{id}")]
-        [AllowAnonymous]
         public async Task<ActionResult<Reporte>> ObtenerPorId(int id)
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var reporte = await _reportesService.ObtenerPorIdAsync(id);
                 if (reporte == null)
                     return NotFound(new { mensaje = "Reporte no encontrado" });
+
+                // Validación de propiedad
+                if (reporte.UsuarioId != userId.Value)
+                    return Forbid();
 
                 return Ok(reporte);
             }
@@ -50,11 +65,18 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet("usuario/{usuarioId}")]
-        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Reporte>>> ObtenerPorUsuario(int usuarioId)
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS reportes
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var reportes = await _reportesService.ObtenerPorUsuarioAsync(usuarioId);
                 return Ok(reportes);
             }
@@ -65,13 +87,18 @@ namespace HoneyBack.Controllers
         }
 
         [HttpGet("estado/{estado}")]
-        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Reporte>>> ObtenerPorEstado(string estado)
         {
             try
             {
-                var reportes = await _reportesService.ObtenerPorEstadoAsync(estado);
-                return Ok(reportes);
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Obtener solo reportes del usuario con ese estado
+                var reportes = await _reportesService.ObtenerPorUsuarioAsync(userId.Value);
+                var reportesFiltrados = reportes.Where(r => r.Estado == estado);
+                return Ok(reportesFiltrados);
             }
             catch (Exception ex)
             {
@@ -80,13 +107,19 @@ namespace HoneyBack.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous]
         public async Task<ActionResult<Reporte>> Crear([FromBody] Reporte reporte)
         {
             try
             {
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
+
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Usar userId DEL TOKEN
+                reporte.UsuarioId = userId.Value;
 
                 var nuevoReporte = await _reportesService.CrearAsync(reporte);
                 return CreatedAtAction(nameof(ObtenerPorId), new { id = nuevoReporte.ReporteId }, nuevoReporte);
@@ -98,7 +131,6 @@ namespace HoneyBack.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize]
         public async Task<ActionResult<Reporte>> Actualizar(int id, [FromBody] Reporte reporte)
         {
             try
@@ -106,10 +138,19 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                var reporteActualizado = await _reportesService.ActualizarAsync(id, reporte);
-                if (reporteActualizado == null)
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de actualizar
+                var reporteExistente = await _reportesService.ObtenerPorIdAsync(id);
+                if (reporteExistente == null)
                     return NotFound(new { mensaje = "Reporte no encontrado" });
 
+                if (reporteExistente.UsuarioId != userId.Value)
+                    return Forbid();
+
+                var reporteActualizado = await _reportesService.ActualizarAsync(id, reporte);
                 return Ok(reporteActualizado);
             }
             catch (Exception ex)
@@ -119,15 +160,23 @@ namespace HoneyBack.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize]
         public async Task<ActionResult> Eliminar(int id)
         {
             try
             {
-                var resultado = await _reportesService.EliminarAsync(id);
-                if (!resultado)
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de eliminar
+                var reporte = await _reportesService.ObtenerPorIdAsync(id);
+                if (reporte == null)
                     return NotFound(new { mensaje = "Reporte no encontrado" });
 
+                if (reporte.UsuarioId != userId.Value)
+                    return Forbid();
+
+                await _reportesService.EliminarAsync(id);
                 return Ok(new { mensaje = "Reporte eliminado exitosamente" });
             }
             catch (Exception ex)

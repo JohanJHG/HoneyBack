@@ -1,5 +1,6 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
+using HoneyBack.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -9,7 +10,7 @@ namespace HoneyBack.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize] // Proteger endpoints de sesiones
+    [Authorize]
     public class SesionesController : ControllerBase
     {
         private readonly ISesionesService _sesionesService;
@@ -19,12 +20,19 @@ namespace HoneyBack.Controllers
             _sesionesService = sesionesService;
         }
 
+        /// <summary>
+        /// Obtiene todas las sesiones del usuario autenticado
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Sesione>>> ObtenerTodos()
+        public async Task<ActionResult<IEnumerable<Sesione>>> ObtenerMisSesiones()
         {
             try
             {
-                var sesiones = await _sesionesService.ObtenerTodosAsync();
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                var sesiones = await _sesionesService.ObtenerPorUsuarioAsync(userId.Value);
                 return Ok(sesiones);
             }
             catch (Exception ex)
@@ -38,9 +46,17 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var sesion = await _sesionesService.ObtenerPorIdAsync(id);
                 if (sesion == null)
                     return NotFound(new { mensaje = "Sesión no encontrada" });
+
+                // Validación de propiedad
+                if (sesion.UsuarioId != userId.Value)
+                    return Forbid();
 
                 return Ok(sesion);
             }
@@ -55,6 +71,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS sesiones
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var sesiones = await _sesionesService.ObtenerPorUsuarioAsync(usuarioId);
                 return Ok(sesiones);
             }
@@ -109,9 +133,17 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede crear sesiones para sí mismo
+                if (sesionDto.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var sesion = new Sesione
                 {
-                    UsuarioId = sesionDto.UsuarioId,
+                    UsuarioId = userId.Value,
                     TokenSesion = sesionDto.TokenSesion,
                     FechaExpiracion = sesionDto.FechaExpiracion
                 };
@@ -130,10 +162,19 @@ namespace HoneyBack.Controllers
         {
             try
             {
-                var resultado = await _sesionesService.EliminarAsync(id);
-                if (!resultado)
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de eliminar
+                var sesion = await _sesionesService.ObtenerPorIdAsync(id);
+                if (sesion == null)
                     return NotFound(new { mensaje = "Sesión no encontrada" });
 
+                if (sesion.UsuarioId != userId.Value)
+                    return Forbid();
+
+                await _sesionesService.EliminarAsync(id);
                 return Ok(new { mensaje = "Sesión eliminada exitosamente" });
             }
             catch (Exception ex)

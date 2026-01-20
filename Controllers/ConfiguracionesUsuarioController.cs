@@ -1,6 +1,7 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using HoneyBack.DTOs;
+using HoneyBack.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,18 +19,27 @@ namespace HoneyBack.Controllers
             _configuracionesService = configuracionesService;
         }
 
+        /// <summary>
+        /// Obtiene la configuración del usuario autenticado
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ConfiguracionUsuarioResponseDto>>> ObtenerTodos()
+        public async Task<ActionResult<ConfiguracionUsuarioResponseDto>> ObtenerMiConfiguracion()
         {
             try
             {
-                var configuraciones = await _configuracionesService.ObtenerTodosAsync();
-                var response = configuraciones.Select(c => MapToDto(c));
-                return Ok(response);
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                var configuracion = await _configuracionesService.ObtenerPorUsuarioIdAsync(userId.Value);
+                if (configuracion == null)
+                    return NotFound(new { mensaje = "Configuración no encontrada" });
+
+                return Ok(MapToDto(configuracion));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al obtener configuraciones", error = ex.Message });
+                return StatusCode(500, new { mensaje = "Error al obtener configuración", error = ex.Message });
             }
         }
 
@@ -38,9 +48,17 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var configuracion = await _configuracionesService.ObtenerPorIdAsync(id);
                 if (configuracion == null)
                     return NotFound(new { mensaje = "Configuración no encontrada" });
+
+                // Validación de propiedad
+                if (configuracion.UsuarioId != userId.Value)
+                    return Forbid();
 
                 return Ok(MapToDto(configuracion));
             }
@@ -55,6 +73,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SU configuración
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var configuracion = await _configuracionesService.ObtenerPorUsuarioIdAsync(usuarioId);
                 if (configuracion == null)
                     return NotFound(new { mensaje = "Configuración no encontrada para el usuario" });
@@ -75,8 +101,12 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 // Verificar si ya existe configuración para el usuario
-                var existente = await _configuracionesService.ObtenerPorUsuarioIdAsync(configuracionDto.UsuarioId);
+                var existente = await _configuracionesService.ObtenerPorUsuarioIdAsync(userId.Value);
                 if (existente != null)
                 {
                     return Conflict(new { mensaje = "Ya existe una configuración para este usuario" });
@@ -84,7 +114,8 @@ namespace HoneyBack.Controllers
 
                 var configuracion = new ConfiguracionesUsuario
                 {
-                    UsuarioId = configuracionDto.UsuarioId,
+                    // Usar userId DEL TOKEN, NO del DTO
+                    UsuarioId = userId.Value,
                     NotificacionesEmail = configuracionDto.NotificacionesEmail,
                     NotificacionesPush = configuracionDto.NotificacionesPush,
                     Tema = configuracionDto.Tema,
@@ -111,6 +142,18 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de actualizar
+                var configuracionExistente = await _configuracionesService.ObtenerPorIdAsync(id);
+                if (configuracionExistente == null)
+                    return NotFound(new { mensaje = "Configuración no encontrada" });
+
+                if (configuracionExistente.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var configuracion = new ConfiguracionesUsuario
                 {
                     NotificacionesEmail = configuracionDto.NotificacionesEmail,
@@ -124,10 +167,7 @@ namespace HoneyBack.Controllers
                 };
 
                 var configuracionActualizada = await _configuracionesService.ActualizarAsync(id, configuracion);
-                if (configuracionActualizada == null)
-                    return NotFound(new { mensaje = "Configuración no encontrada" });
-
-                return Ok(MapToDto(configuracionActualizada));
+                return Ok(MapToDto(configuracionActualizada!));
             }
             catch (Exception ex)
             {
@@ -140,6 +180,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede marcar SU configuración
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var resultado = await _configuracionesService.MarcarComoVeterano(usuarioId);
                 if (!resultado)
                     return NotFound(new { mensaje = "Configuración no encontrada" });
@@ -157,10 +205,19 @@ namespace HoneyBack.Controllers
         {
             try
             {
-                var resultado = await _configuracionesService.EliminarAsync(id);
-                if (!resultado)
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de eliminar
+                var configuracion = await _configuracionesService.ObtenerPorIdAsync(id);
+                if (configuracion == null)
                     return NotFound(new { mensaje = "Configuración no encontrada" });
 
+                if (configuracion.UsuarioId != userId.Value)
+                    return Forbid();
+
+                await _configuracionesService.EliminarAsync(id);
                 return Ok(new { mensaje = "Configuración eliminada exitosamente" });
             }
             catch (Exception ex)

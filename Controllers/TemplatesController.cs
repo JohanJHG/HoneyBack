@@ -1,6 +1,7 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using HoneyBack.DTOs;
+using HoneyBack.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,12 +19,19 @@ namespace HoneyBack.Controllers
             _templatesService = templatesService;
         }
 
+        /// <summary>
+        /// Obtiene todos los templates del usuario autenticado
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TemplateResponseDto>>> ObtenerTodos()
+        public async Task<ActionResult<IEnumerable<TemplateResponseDto>>> ObtenerMisTemplates()
         {
             try
             {
-                var templates = await _templatesService.ObtenerTodosAsync();
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                var templates = await _templatesService.ObtenerPorUsuarioAsync(userId.Value);
                 var response = templates.Select(t => MapToDto(t));
                 return Ok(response);
             }
@@ -38,9 +46,17 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var template = await _templatesService.ObtenerPorIdAsync(id);
                 if (template == null)
                     return NotFound(new { mensaje = "Template no encontrado" });
+
+                // Validación de propiedad
+                if (template.UsuarioId != userId.Value)
+                    return Forbid();
 
                 return Ok(MapToDto(template));
             }
@@ -55,6 +71,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS templates
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var templates = await _templatesService.ObtenerPorUsuarioAsync(usuarioId);
                 var response = templates.Select(t => MapToDto(t));
                 return Ok(response);
@@ -70,6 +94,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS templates
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var templates = await _templatesService.ObtenerActivosPorUsuarioAsync(usuarioId);
                 var response = templates.Select(t => MapToDto(t));
                 return Ok(response);
@@ -85,6 +117,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS templates
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var templates = await _templatesService.ObtenerMasUsadosAsync(usuarioId, cantidad);
                 var response = templates.Select(t => MapToDto(t));
                 return Ok(response);
@@ -103,15 +143,20 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                // Validar si ya existe
-                if (await _templatesService.ExisteNombreAsync(templateDto.Nombre, templateDto.UsuarioId))
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar nombre único para ESTE usuario
+                if (await _templatesService.ExisteNombreAsync(templateDto.Nombre, userId.Value))
                 {
-                    return Conflict(new { mensaje = "Ya existe un template con ese nombre para el usuario" });
+                    return Conflict(new { mensaje = "Ya existe un template con ese nombre" });
                 }
 
                 var template = new Template
                 {
-                    UsuarioId = templateDto.UsuarioId,
+                    // Usar userId DEL TOKEN, NO del DTO
+                    UsuarioId = userId.Value,
                     Nombre = templateDto.Nombre,
                     CategoriaId = templateDto.CategoriaId,
                     Monto = templateDto.Monto,
@@ -136,6 +181,18 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de actualizar
+                var templateExistente = await _templatesService.ObtenerPorIdAsync(id);
+                if (templateExistente == null)
+                    return NotFound(new { mensaje = "Template no encontrado" });
+
+                if (templateExistente.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var template = new Template
                 {
                     Nombre = templateDto.Nombre,
@@ -147,10 +204,7 @@ namespace HoneyBack.Controllers
                 };
 
                 var templateActualizado = await _templatesService.ActualizarAsync(id, template);
-                if (templateActualizado == null)
-                    return NotFound(new { mensaje = "Template no encontrado" });
-
-                return Ok(MapToDto(templateActualizado));
+                return Ok(MapToDto(templateActualizado!));
             }
             catch (Exception ex)
             {
@@ -163,6 +217,18 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad
+                var template = await _templatesService.ObtenerPorIdAsync(id);
+                if (template == null)
+                    return NotFound(new { mensaje = "Template no encontrado" });
+
+                if (template.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var resultado = await _templatesService.RegistrarUsoAsync(id);
                 if (!resultado)
                     return NotFound(new { mensaje = "Template no encontrado" });
@@ -180,10 +246,19 @@ namespace HoneyBack.Controllers
         {
             try
             {
-                var resultado = await _templatesService.EliminarAsync(id);
-                if (!resultado)
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad
+                var template = await _templatesService.ObtenerPorIdAsync(id);
+                if (template == null)
                     return NotFound(new { mensaje = "Template no encontrado" });
 
+                if (template.UsuarioId != userId.Value)
+                    return Forbid();
+
+                await _templatesService.EliminarAsync(id);
                 return Ok(new { mensaje = "Template eliminado exitosamente" });
             }
             catch (Exception ex)

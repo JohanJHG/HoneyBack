@@ -42,6 +42,17 @@ namespace HoneyBack.Servicios
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Obtiene categorías filtradas por tipo y usuario (incluye las de sistema)
+        /// </summary>
+        public async Task<IEnumerable<CategoriasTransaccione>> ObtenerPorTipoYUsuarioAsync(string tipo, int usuarioId)
+        {
+            return await _context.CategoriasTransacciones
+                .Where(c => c.Tipo == tipo && (c.UsuarioId == usuarioId || c.EsSistema == true))
+                .OrderBy(c => c.Nombre)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<CategoriasTransaccione>> ObtenerCategoriasActivasAsync(int usuarioId)
         {
             return await _context.CategoriasTransacciones

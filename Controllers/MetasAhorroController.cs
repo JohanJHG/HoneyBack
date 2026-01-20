@@ -1,6 +1,7 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using HoneyBack.DTOs;
+using HoneyBack.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,12 +19,19 @@ namespace HoneyBack.Controllers
             _metasService = metasService;
         }
 
+        /// <summary>
+        /// Obtiene todas las metas del usuario autenticado
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<MetaAhorroResponseDto>>> ObtenerTodos()
+        public async Task<ActionResult<IEnumerable<MetaAhorroResponseDto>>> ObtenerMisMetas()
         {
             try
             {
-                var metas = await _metasService.ObtenerTodosAsync();
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                var metas = await _metasService.ObtenerPorUsuarioAsync(userId.Value);
                 var response = metas.Select(m => MapToDto(m));
                 return Ok(response);
             }
@@ -38,9 +46,17 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var meta = await _metasService.ObtenerPorIdAsync(id);
                 if (meta == null)
                     return NotFound(new { mensaje = "Meta no encontrada" });
+
+                // Validación de propiedad
+                if (meta.UsuarioId != userId.Value)
+                    return Forbid();
 
                 return Ok(MapToDto(meta));
             }
@@ -55,6 +71,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS metas
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var metas = await _metasService.ObtenerPorUsuarioAsync(usuarioId);
                 var response = metas.Select(m => MapToDto(m));
                 return Ok(response);
@@ -70,6 +94,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS metas
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var metas = await _metasService.ObtenerActivasPorUsuarioAsync(usuarioId);
                 var response = metas.Select(m => MapToDto(m));
                 return Ok(response);
@@ -85,6 +117,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS metas
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var metas = await _metasService.ObtenerCompletadasPorUsuarioAsync(usuarioId);
                 var response = metas.Select(m => MapToDto(m));
                 return Ok(response);
@@ -103,9 +143,14 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var meta = new MetasAhorro  
                 {
-                    UsuarioId = metaDto.UsuarioId,
+                    // Usar userId DEL TOKEN, NO del DTO
+                    UsuarioId = userId.Value,
                     Nombre = metaDto.Nombre,
                     Descripcion = metaDto.Descripcion,
                     Categoria = metaDto.Categoria ?? "otro",
@@ -134,6 +179,18 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de actualizar
+                var metaExistente = await _metasService.ObtenerPorIdAsync(id);
+                if (metaExistente == null)
+                    return NotFound(new { mensaje = "Meta no encontrada" });
+
+                if (metaExistente.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var meta = new MetasAhorro
                 {
                     Nombre = metaDto.Nombre,
@@ -150,10 +207,7 @@ namespace HoneyBack.Controllers
                 };
 
                 var metaActualizada = await _metasService.ActualizarAsync(id, meta);
-                if (metaActualizada == null)
-                    return NotFound(new { mensaje = "Meta no encontrada" });
-
-                return Ok(MapToDto(metaActualizada));
+                return Ok(MapToDto(metaActualizada!));
             }
             catch (Exception ex)
             {
@@ -169,11 +223,20 @@ namespace HoneyBack.Controllers
                 if (nuevoMonto < 0)
                     return BadRequest(new { mensaje = "El monto no puede ser negativo" });
 
-                var metaActualizada = await _metasService.ActualizarMontoAsync(id, nuevoMonto);
-                if (metaActualizada == null)
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad
+                var metaExistente = await _metasService.ObtenerPorIdAsync(id);
+                if (metaExistente == null)
                     return NotFound(new { mensaje = "Meta no encontrada" });
 
-                return Ok(MapToDto(metaActualizada));
+                if (metaExistente.UsuarioId != userId.Value)
+                    return Forbid();
+
+                var metaActualizada = await _metasService.ActualizarMontoAsync(id, nuevoMonto);
+                return Ok(MapToDto(metaActualizada!));
             }
             catch (Exception ex)
             {
@@ -186,6 +249,18 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad
+                var meta = await _metasService.ObtenerPorIdAsync(id);
+                if (meta == null)
+                    return NotFound(new { mensaje = "Meta no encontrada" });
+
+                if (meta.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var resultado = await _metasService.MarcarComoCompletadaAsync(id);
                 if (!resultado)
                     return NotFound(new { mensaje = "Meta no encontrada" });
@@ -203,10 +278,19 @@ namespace HoneyBack.Controllers
         {
             try
             {
-                var resultado = await _metasService.EliminarAsync(id);
-                if (!resultado)
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad
+                var meta = await _metasService.ObtenerPorIdAsync(id);
+                if (meta == null)
                     return NotFound(new { mensaje = "Meta no encontrada" });
 
+                if (meta.UsuarioId != userId.Value)
+                    return Forbid();
+
+                await _metasService.EliminarAsync(id);
                 return Ok(new { mensaje = "Meta eliminada exitosamente" });
             }
             catch (Exception ex)

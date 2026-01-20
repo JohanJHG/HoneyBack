@@ -1,6 +1,7 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using HoneyBack.DTOs;
+using HoneyBack.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,24 +19,21 @@ namespace HoneyBack.Controllers
             _categoriasService = categoriasService;
         }
 
+        /// <summary>
+        /// Obtiene las categorías del usuario autenticado (incluye las de sistema)
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoriaTransaccionResponseDto>>> ObtenerTodos()
+        public async Task<ActionResult<IEnumerable<CategoriaTransaccionResponseDto>>> ObtenerMisCategorias()
         {
             try
             {
-                var categorias = await _categoriasService.ObtenerTodosAsync();
-                var response = categorias.Select(c => new CategoriaTransaccionResponseDto
-                {
-                    CategoriaId = c.CategoriaId,
-                    Nombre = c.Nombre,
-                    Tipo = c.Tipo,
-                    Color = c.Color,
-                    Icono = c.Icono,
-                    EsSistema = c.EsSistema,
-                    UsuarioId = c.UsuarioId,
-                    Activa = c.Activa
-                });
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
 
+                // Retorna categorías del sistema + las del usuario
+                var categorias = await _categoriasService.ObtenerPorUsuarioAsync(userId.Value);
+                var response = categorias.Select(c => MapToDto(c));
                 return Ok(response);
             }
             catch (Exception ex)
@@ -49,23 +47,19 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var categoria = await _categoriasService.ObtenerPorIdAsync(id);
                 if (categoria == null)
                     return NotFound(new { mensaje = "Categoría no encontrada" });
 
-                var response = new CategoriaTransaccionResponseDto
-                {
-                    CategoriaId = categoria.CategoriaId,
-                    Nombre = categoria.Nombre,
-                    Tipo = categoria.Tipo,
-                    Color = categoria.Color,
-                    Icono = categoria.Icono,
-                    EsSistema = categoria.EsSistema,
-                    UsuarioId = categoria.UsuarioId,
-                    Activa = categoria.Activa
-                };
+                // Permitir acceso si es categoría del sistema o pertenece al usuario
+                if (categoria.EsSistema != true && categoria.UsuarioId != userId.Value)
+                    return Forbid();
 
-                return Ok(response);
+                return Ok(MapToDto(categoria));
             }
             catch (Exception ex)
             {
@@ -78,19 +72,16 @@ namespace HoneyBack.Controllers
         {
             try
             {
-                var categorias = await _categoriasService.ObtenerPorUsuarioAsync(usuarioId);
-                var response = categorias.Select(c => new CategoriaTransaccionResponseDto
-                {
-                    CategoriaId = c.CategoriaId,
-                    Nombre = c.Nombre,
-                    Tipo = c.Tipo,
-                    Color = c.Color,
-                    Icono = c.Icono,
-                    EsSistema = c.EsSistema,
-                    UsuarioId = c.UsuarioId,
-                    Activa = c.Activa
-                });
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
 
+                // Solo puede consultar SUS categorías
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
+                var categorias = await _categoriasService.ObtenerPorUsuarioAsync(usuarioId);
+                var response = categorias.Select(c => MapToDto(c));
                 return Ok(response);
             }
             catch (Exception ex)
@@ -104,19 +95,13 @@ namespace HoneyBack.Controllers
         {
             try
             {
-                var categorias = await _categoriasService.ObtenerPorTipoAsync(tipo);
-                var response = categorias.Select(c => new CategoriaTransaccionResponseDto
-                {
-                    CategoriaId = c.CategoriaId,
-                    Nombre = c.Nombre,
-                    Tipo = c.Tipo,
-                    Color = c.Color,
-                    Icono = c.Icono,
-                    EsSistema = c.EsSistema,
-                    UsuarioId = c.UsuarioId,
-                    Activa = c.Activa
-                });
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
 
+                // Filtrar por tipo y usuario
+                var categorias = await _categoriasService.ObtenerPorTipoYUsuarioAsync(tipo, userId.Value);
+                var response = categorias.Select(c => MapToDto(c));
                 return Ok(response);
             }
             catch (Exception ex)
@@ -130,19 +115,16 @@ namespace HoneyBack.Controllers
         {
             try
             {
-                var categorias = await _categoriasService.ObtenerCategoriasActivasAsync(usuarioId);
-                var response = categorias.Select(c => new CategoriaTransaccionResponseDto
-                {
-                    CategoriaId = c.CategoriaId,
-                    Nombre = c.Nombre,
-                    Tipo = c.Tipo,
-                    Color = c.Color,
-                    Icono = c.Icono,
-                    EsSistema = c.EsSistema,
-                    UsuarioId = c.UsuarioId,
-                    Activa = c.Activa
-                });
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
 
+                // Solo puede consultar SUS categorías
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
+                var categorias = await _categoriasService.ObtenerCategoriasActivasAsync(usuarioId);
+                var response = categorias.Select(c => MapToDto(c));
                 return Ok(response);
             }
             catch (Exception ex)
@@ -159,9 +141,12 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                // Validar si ya existe
-                if (categoriaDto.UsuarioId.HasValue && 
-                    await _categoriasService.ExisteNombreAsync(categoriaDto.Nombre, categoriaDto.UsuarioId.Value, categoriaDto.Tipo))
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar si ya existe para este usuario
+                if (await _categoriasService.ExisteNombreAsync(categoriaDto.Nombre, userId.Value, categoriaDto.Tipo))
                 {
                     return Conflict(new { mensaje = "Ya existe una categoría con ese nombre para el usuario" });
                 }
@@ -172,26 +157,13 @@ namespace HoneyBack.Controllers
                     Tipo = categoriaDto.Tipo,
                     Color = categoriaDto.Color ?? "#FFD8A9",
                     Icono = categoriaDto.Icono,
-                    EsSistema = categoriaDto.EsSistema ?? false,
-                    UsuarioId = categoriaDto.UsuarioId,
+                    EsSistema = false, // Las categorías creadas por usuarios nunca son de sistema
+                    UsuarioId = userId.Value, // Usar userId DEL TOKEN
                     Activa = categoriaDto.Activa ?? true
                 };
 
                 var categoriaCreada = await _categoriasService.CrearAsync(categoria);
-
-                var response = new CategoriaTransaccionResponseDto
-                {
-                    CategoriaId = categoriaCreada.CategoriaId,
-                    Nombre = categoriaCreada.Nombre,
-                    Tipo = categoriaCreada.Tipo,
-                    Color = categoriaCreada.Color,
-                    Icono = categoriaCreada.Icono,
-                    EsSistema = categoriaCreada.EsSistema,
-                    UsuarioId = categoriaCreada.UsuarioId,
-                    Activa = categoriaCreada.Activa
-                };
-
-                return CreatedAtAction(nameof(ObtenerPorId), new { id = categoriaCreada.CategoriaId }, response);
+                return CreatedAtAction(nameof(ObtenerPorId), new { id = categoriaCreada.CategoriaId }, MapToDto(categoriaCreada));
             }
             catch (Exception ex)
             {
@@ -207,6 +179,22 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de actualizar
+                var categoriaExistente = await _categoriasService.ObtenerPorIdAsync(id);
+                if (categoriaExistente == null)
+                    return NotFound(new { mensaje = "Categoría no encontrada" });
+
+                // No permitir editar categorías de sistema ni de otros usuarios
+                if (categoriaExistente.EsSistema == true)
+                    return BadRequest(new { mensaje = "No se pueden modificar categorías del sistema" });
+
+                if (categoriaExistente.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var categoria = new CategoriasTransaccione
                 {
                     Nombre = categoriaDto.Nombre,
@@ -217,22 +205,7 @@ namespace HoneyBack.Controllers
                 };
 
                 var categoriaActualizada = await _categoriasService.ActualizarAsync(id, categoria);
-                if (categoriaActualizada == null)
-                    return NotFound(new { mensaje = "Categoría no encontrada" });
-
-                var response = new CategoriaTransaccionResponseDto
-                {
-                    CategoriaId = categoriaActualizada.CategoriaId,
-                    Nombre = categoriaActualizada.Nombre,
-                    Tipo = categoriaActualizada.Tipo,
-                    Color = categoriaActualizada.Color,
-                    Icono = categoriaActualizada.Icono,
-                    EsSistema = categoriaActualizada.EsSistema,
-                    UsuarioId = categoriaActualizada.UsuarioId,
-                    Activa = categoriaActualizada.Activa
-                };
-
-                return Ok(response);
+                return Ok(MapToDto(categoriaActualizada!));
             }
             catch (Exception ex)
             {
@@ -245,6 +218,22 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de eliminar
+                var categoria = await _categoriasService.ObtenerPorIdAsync(id);
+                if (categoria == null)
+                    return NotFound(new { mensaje = "Categoría no encontrada" });
+
+                // No permitir eliminar categorías de sistema ni de otros usuarios
+                if (categoria.EsSistema == true)
+                    return BadRequest(new { mensaje = "No se pueden eliminar categorías del sistema" });
+
+                if (categoria.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var resultado = await _categoriasService.EliminarAsync(id);
                 if (!resultado)
                     return NotFound(new { mensaje = "Categoría no encontrada o es de sistema (no se puede eliminar)" });
@@ -255,6 +244,21 @@ namespace HoneyBack.Controllers
             {
                 return StatusCode(500, new { mensaje = "Error al eliminar categoría", error = ex.Message });
             }
+        }
+
+        private CategoriaTransaccionResponseDto MapToDto(CategoriasTransaccione categoria)
+        {
+            return new CategoriaTransaccionResponseDto
+            {
+                CategoriaId = categoria.CategoriaId,
+                Nombre = categoria.Nombre,
+                Tipo = categoria.Tipo,
+                Color = categoria.Color,
+                Icono = categoria.Icono,
+                EsSistema = categoria.EsSistema,
+                UsuarioId = categoria.UsuarioId,
+                Activa = categoria.Activa
+            };
         }
     }
 }

@@ -1,6 +1,7 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using HoneyBack.DTOs;
+using HoneyBack.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,12 +19,19 @@ namespace HoneyBack.Controllers
             _estadisticasService = estadisticasService;
         }
 
+        /// <summary>
+        /// Obtiene todas las estadísticas del usuario autenticado
+        /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<EstadisticaMensualResponseDto>>> ObtenerTodos()
+        public async Task<ActionResult<IEnumerable<EstadisticaMensualResponseDto>>> ObtenerMisEstadisticas()
         {
             try
             {
-                var estadisticas = await _estadisticasService.ObtenerTodosAsync();
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                var estadisticas = await _estadisticasService.ObtenerPorUsuarioAsync(userId.Value);
                 var response = estadisticas.Select(e => MapToDto(e));
                 return Ok(response);
             }
@@ -38,9 +46,17 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var estadistica = await _estadisticasService.ObtenerPorIdAsync(id);
                 if (estadistica == null)
                     return NotFound(new { mensaje = "Estadística no encontrada" });
+
+                // Validación de propiedad
+                if (estadistica.UsuarioId != userId.Value)
+                    return Forbid();
 
                 return Ok(MapToDto(estadistica));
             }
@@ -55,6 +71,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS estadísticas
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var estadisticas = await _estadisticasService.ObtenerPorUsuarioAsync(usuarioId);
                 var response = estadisticas.Select(e => MapToDto(e));
                 return Ok(response);
@@ -70,6 +94,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS estadísticas
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var estadistica = await _estadisticasService.ObtenerPorPeriodoAsync(usuarioId, anio, mes);
                 if (estadistica == null)
                     return NotFound(new { mensaje = "Estadística no encontrada para el período especificado" });
@@ -87,6 +119,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede consultar SUS estadísticas
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var estadisticas = await _estadisticasService.ObtenerPorAnioAsync(usuarioId, anio);
                 var response = estadisticas.Select(e => MapToDto(e));
                 return Ok(response);
@@ -105,9 +145,14 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
                 var estadistica = new EstadisticasMensuale
                 {
-                    UsuarioId = estadisticaDto.UsuarioId,
+                    // Usar userId DEL TOKEN
+                    UsuarioId = userId.Value,
                     Anio = estadisticaDto.Anio,
                     Mes = estadisticaDto.Mes,
                     TotalIngresos = estadisticaDto.TotalIngresos ?? 0,
@@ -134,6 +179,18 @@ namespace HoneyBack.Controllers
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de actualizar
+                var estadisticaExistente = await _estadisticasService.ObtenerPorIdAsync(id);
+                if (estadisticaExistente == null)
+                    return NotFound(new { mensaje = "Estadística no encontrada" });
+
+                if (estadisticaExistente.UsuarioId != userId.Value)
+                    return Forbid();
+
                 var estadistica = new EstadisticasMensuale
                 {
                     TotalIngresos = estadisticaDto.TotalIngresos,
@@ -144,10 +201,7 @@ namespace HoneyBack.Controllers
                 };
 
                 var estadisticaActualizada = await _estadisticasService.ActualizarAsync(id, estadistica);
-                if (estadisticaActualizada == null)
-                    return NotFound(new { mensaje = "Estadística no encontrada" });
-
-                return Ok(MapToDto(estadisticaActualizada));
+                return Ok(MapToDto(estadisticaActualizada!));
             }
             catch (Exception ex)
             {
@@ -160,6 +214,14 @@ namespace HoneyBack.Controllers
         {
             try
             {
+                var tokenUserId = User.GetUserId();
+                if (!tokenUserId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Solo puede recalcular SUS estadísticas
+                if (usuarioId != tokenUserId.Value)
+                    return Forbid();
+
                 var resultado = await _estadisticasService.RecalcularEstadisticaAsync(usuarioId, anio, mes);
                 if (!resultado)
                     return NotFound(new { mensaje = "Estadística no encontrada para recalcular" });
@@ -177,10 +239,19 @@ namespace HoneyBack.Controllers
         {
             try
             {
-                var resultado = await _estadisticasService.EliminarAsync(id);
-                if (!resultado)
+                var userId = User.GetUserId();
+                if (!userId.HasValue)
+                    return Unauthorized(new { mensaje = "Usuario no autenticado" });
+
+                // Validar propiedad antes de eliminar
+                var estadistica = await _estadisticasService.ObtenerPorIdAsync(id);
+                if (estadistica == null)
                     return NotFound(new { mensaje = "Estadística no encontrada" });
 
+                if (estadistica.UsuarioId != userId.Value)
+                    return Forbid();
+
+                await _estadisticasService.EliminarAsync(id);
                 return Ok(new { mensaje = "Estadística eliminada exitosamente" });
             }
             catch (Exception ex)

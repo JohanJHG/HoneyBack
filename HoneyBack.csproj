@@ -15,11 +15,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="WeatherForecast.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="file.md" />
     <None Remove="GUIA_SWAGGER_BEARER.md" />
     <None Remove="INFORME_CAMBIOS_AUTENTICACION.md" />
     <None Remove="INFORME_IMPLEMENTACION_COMPLETA.md" />
     <None Remove="INFORME_VALIDACION_COMPLETA.md" />
+    <None Remove="METAS_AHORRO_API.md" />
+    <None Remove="PROPUESTA_RECUPERACION_PASSWORD.md" />
     <None Remove="README_API.md" />
+    <None Remove="RECUPERACION_PASSWORD_API.md" />
     <None Remove="REQUERIMIENTOS_FRONTEND_ANGULAR.md" />
     <None Remove="test-api.ps1" />
   </ItemGroup>
