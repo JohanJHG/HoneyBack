@@ -1,4 +1,5 @@
 using HoneyBack.DTOs.Auth;
+using HoneyBack.Extensions;
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,7 @@ namespace HoneyBack.Controllers
         private readonly HoneyBalanceDbContext _context;
         private readonly ILogger<AuthController> _logger;
 
-        // Duración del token de recuperación en minutos
+        // Duraci?n del token de recuperaci?n en minutos
         private const int TokenExpirationMinutes = 15;
 
         public AuthController(
@@ -41,7 +42,7 @@ namespace HoneyBack.Controllers
         }
 
         /// <summary>
-        /// Login de usuario con email y contraseña
+        /// Login de usuario con email y contrase?a
         /// </summary>
         [HttpPost("login")]
         public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
@@ -49,47 +50,47 @@ namespace HoneyBack.Controllers
             // Validar entrada
             if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
             {
-                return BadRequest(new { message = "Email y contraseña son requeridos" });
+                return BadRequest(new { message = "Email y contrase?a son requeridos" });
             }
 
             // Buscar usuario por email
             var usuario = await _usuariosService.ObtenerPorEmailAsync(request.Email);
             if (usuario == null)
             {
-                return Unauthorized(new { message = "Credenciales inválidas" });
+                return Unauthorized(new { message = "Credenciales inv?lidas" });
             }
 
-            // Verificar si la contraseña está hasheada con BCrypt o es texto plano
+            // Verificar si la contrase?a est? hasheada con BCrypt o es texto plano
             bool passwordValida = false;
             bool requiereMigracion = false;
 
             try
             {
-                // Intentar validar con BCrypt (contraseñas hasheadas)
+                // Intentar validar con BCrypt (contrase?as hasheadas)
                 if (usuario.PasswordHash.StartsWith("$2"))
                 {
                     passwordValida = BCrypt.Net.BCrypt.Verify(request.Password, usuario.PasswordHash);
                 }
                 else
                 {
-                    // Contraseña en texto plano (legacy)
+                    // Contrase?a en texto plano (legacy)
                     passwordValida = usuario.PasswordHash == request.Password;
                     requiereMigracion = true;
                 }
             }
             catch (BCrypt.Net.SaltParseException)
             {
-                // Si falla la verificación BCrypt, comparar como texto plano
+                // Si falla la verificaci?n BCrypt, comparar como texto plano
                 passwordValida = usuario.PasswordHash == request.Password;
                 requiereMigracion = true;
             }
 
             if (!passwordValida)
             {
-                return Unauthorized(new { message = "Credenciales inválidas" });
+                return Unauthorized(new { message = "Credenciales inv?lidas" });
             }
 
-            // Si la contraseña requiere migración, actualizarla a BCrypt
+            // Si la contrase?a requiere migraci?n, actualizarla a BCrypt
             if (requiereMigracion)
             {
                 usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
@@ -99,7 +100,7 @@ namespace HoneyBack.Controllers
             // Generar JWT token
             var (token, expiresAt) = _jwtTokenService.Generate(usuario);
 
-            // Crear sesión en la base de datos
+            // Crear sesi?n en la base de datos
             var sesion = new Sesione
             {
                 UsuarioId = usuario.UsuarioId,
@@ -145,22 +146,22 @@ namespace HoneyBack.Controllers
             // Validar formato de email
             if (!IsValidEmail(request.Email))
             {
-                return BadRequest(new { message = "El formato del email no es válido" });
+                return BadRequest(new { message = "El formato del email no es v?lido" });
             }
 
             // Verificar si el email ya existe
             if (await _usuariosService.ExisteEmailAsync(request.Email))
             {
-                return Conflict(new { message = "El email ya está registrado" });
+                return Conflict(new { message = "El email ya est? registrado" });
             }
 
-            // Validar longitud mínima de contraseña
+            // Validar longitud m?nima de contrase?a
             if (request.Password.Length < 6)
             {
-                return BadRequest(new { message = "La contraseña debe tener al menos 6 caracteres" });
+                return BadRequest(new { message = "La contrase?a debe tener al menos 6 caracteres" });
             }
 
-            // Hashear contraseña con BCrypt
+            // Hashear contrase?a con BCrypt
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
             // Crear usuario
@@ -174,7 +175,7 @@ namespace HoneyBack.Controllers
 
             var usuarioCreado = await _usuariosService.CrearAsync(nuevoUsuario);
 
-            // Devolver respuesta sin contraseña
+            // Devolver respuesta sin contrase?a
             var response = new RegisterResponseDto
             {
                 UsuarioId = usuarioCreado.UsuarioId,
@@ -187,29 +188,28 @@ namespace HoneyBack.Controllers
         }
 
         /// <summary>
-        /// Obtener información del usuario autenticado actual
+        /// Obtener informaci?n del usuario autenticado actual
         /// </summary>
         [HttpGet("me")]
         [Authorize]
         public async Task<ActionResult<UsuarioDto>> GetCurrentUser()
         {
-            // Obtener el ID del usuario desde los claims del JWT
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            // Obtener el ID del usuario desde los claims del JWT usando extensión consistente
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
             {
-                return Unauthorized(new { message = "Token inválido" });
+                return Unauthorized(new { message = "Token inv?lido" });
             }
 
             // Buscar el usuario en la base de datos
-            var usuario = await _usuariosService.ObtenerPorIdAsync(userId);
-            
+            var usuario = await _usuariosService.ObtenerPorIdAsync(userId.Value);
+
             if (usuario == null)
             {
                 return NotFound(new { message = "Usuario no encontrado" });
             }
 
-            // Devolver datos del usuario sin la contraseña
+            // Devolver datos del usuario sin la contrase?a
             var response = new UsuarioDto
             {
                 UsuarioId = usuario.UsuarioId,
@@ -222,57 +222,56 @@ namespace HoneyBack.Controllers
         }
 
         /// <summary>
-        /// Cambiar contraseña del usuario autenticado
+        /// Cambiar contrase?a del usuario autenticado
         /// </summary>
         [HttpPost("cambiar-password")]
         [Authorize]
         public async Task<ActionResult> CambiarPassword([FromBody] CambiarPasswordDto request)
         {
-            // Obtener el ID del usuario desde los claims del JWT
-            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            // Obtener el ID del usuario desde los claims del JWT usando extensión consistente
+            var userId = User.GetUserId();
+            if (!userId.HasValue)
             {
-                return Unauthorized(new { message = "Token inválido" });
+                return Unauthorized(new { message = "Token inv?lido" });
             }
 
             // Validar entrada
             if (string.IsNullOrWhiteSpace(request.PasswordActual) || string.IsNullOrWhiteSpace(request.PasswordNueva))
             {
-                return BadRequest(new { message = "Contraseña actual y nueva son requeridas" });
+                return BadRequest(new { message = "Contrase?a actual y nueva son requeridas" });
             }
 
-            // Validar longitud mínima de contraseña nueva
+            // Validar longitud m?nima de contrase?a nueva
             if (request.PasswordNueva.Length < 6)
             {
-                return BadRequest(new { message = "La contraseña nueva debe tener al menos 6 caracteres" });
+                return BadRequest(new { message = "La contrase?a nueva debe tener al menos 6 caracteres" });
             }
 
             // Buscar el usuario
-            var usuario = await _usuariosService.ObtenerPorIdAsync(userId);
+            var usuario = await _usuariosService.ObtenerPorIdAsync(userId.Value);
             if (usuario == null)
             {
                 return NotFound(new { message = "Usuario no encontrado" });
             }
 
-            // Verificar que la contraseña actual es correcta
+            // Verificar que la contrase?a actual es correcta
             bool passwordValida = BCrypt.Net.BCrypt.Verify(request.PasswordActual, usuario.PasswordHash);
             if (!passwordValida)
             {
-                return BadRequest(new { message = "La contraseña actual es incorrecta" });
+                return BadRequest(new { message = "La contrase?a actual es incorrecta" });
             }
 
-            // Hashear la nueva contraseña
+            // Hashear la nueva contrase?a
             usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.PasswordNueva);
 
             // Actualizar el usuario
-            await _usuariosService.ActualizarAsync(userId, usuario);
+            await _usuariosService.ActualizarAsync(userId.Value, usuario);
 
-            return Ok(new { message = "Contraseña actualizada exitosamente" });
+            return Ok(new { message = "Contrase?a actualizada exitosamente" });
         }
 
         /// <summary>
-        /// Cerrar sesión (invalidar token actual)
+        /// Cerrar sesi?n (invalidar token actual)
         /// </summary>
         [HttpPost("logout")]
         [Authorize]
@@ -280,31 +279,31 @@ namespace HoneyBack.Controllers
         {
             // Obtener el token del header
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            
+
             if (string.IsNullOrEmpty(token))
             {
                 return BadRequest(new { message = "Token no proporcionado" });
             }
 
-            // Buscar y eliminar la sesión
+            // Buscar y eliminar la sesi?n
             var sesion = await _sesionesService.ObtenerPorTokenAsync(token);
             if (sesion != null)
             {
                 await _sesionesService.EliminarAsync(sesion.SesionId);
             }
 
-            return Ok(new { message = "Sesión cerrada exitosamente" });
+            return Ok(new { message = "Sesi?n cerrada exitosamente" });
         }
 
         /// <summary>
-        /// Solicita un código de recuperación de contraseña.
-        /// Siempre devuelve respuesta genérica para evitar enumeración de emails.
+        /// Solicita un c?digo de recuperaci?n de contrase?a.
+        /// Siempre devuelve respuesta gen?rica para evitar enumeraci?n de emails.
         /// </summary>
         [HttpPost("forgot-password")]
         [AllowAnonymous]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
-            // Respuesta genérica por seguridad (no revela si el email existe)
+            // Respuesta gen?rica por seguridad (no revela si el email existe)
             var genericResponse = new { mensaje = "Si el email esta registrado, recibiras un codigo de recuperacion en tu correo." };
 
             try
@@ -312,7 +311,7 @@ namespace HoneyBack.Controllers
                 // Buscar usuario por email (case-insensitive)
                 var usuario = await _usuariosService.ObtenerPorEmailAsync(request.Email.ToLower().Trim());
 
-                // Si no existe, retornar respuesta genérica (seguridad: no revelar si email existe)
+                // Si no existe, retornar respuesta gen?rica (seguridad: no revelar si email existe)
                 if (usuario == null)
                 {
                     _logger.LogInformation("Intento de recuperacion para email no registrado: {Email}", request.Email);
@@ -329,7 +328,7 @@ namespace HoneyBack.Controllers
                     tokenAnterior.Used = true;
                 }
 
-                // Generar código de 6 dígitos criptográficamente seguro
+                // Generar c?digo de 6 d?gitos criptogr?ficamente seguro
                 var token = GenerateSecureToken();
 
                 // Crear registro de token
@@ -345,7 +344,7 @@ namespace HoneyBack.Controllers
                 _context.PasswordResetTokens.Add(resetToken);
                 await _context.SaveChangesAsync();
 
-                // Enviar email con el código
+                // Enviar email con el c?digo
                 var emailSent = await _emailService.SendPasswordResetEmailAsync(
                     usuario.Email,
                     usuario.NombreCompleto ?? usuario.Email,
@@ -371,7 +370,7 @@ namespace HoneyBack.Controllers
         }
 
         /// <summary>
-        /// Restablece la contraseña usando el código de verificación.
+        /// Restablece la contrase?a usando el c?digo de verificaci?n.
         /// </summary>
         [HttpPost("reset-password")]
         [AllowAnonymous]
@@ -379,7 +378,7 @@ namespace HoneyBack.Controllers
         {
             try
             {
-                // Buscar token válido (no usado y no expirado)
+                // Buscar token v?lido (no usado y no expirado)
                 var resetToken = await _context.PasswordResetTokens
                     .Include(t => t.Usuario)
                     .FirstOrDefaultAsync(t =>
@@ -401,10 +400,10 @@ namespace HoneyBack.Controllers
                     return BadRequest(new { mensaje = "Usuario no encontrado" });
                 }
 
-                // Hash de la nueva contraseña con BCrypt (work factor 12)
+                // Hash de la nueva contrase?a con BCrypt (work factor 12)
                 var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
 
-                // Actualizar contraseña del usuario
+                // Actualizar contrase?a del usuario
                 resetToken.Usuario.PasswordHash = hashedPassword;
                 resetToken.Usuario.FechaUltimaActualizacion = DateTime.UtcNow;
 
@@ -427,18 +426,18 @@ namespace HoneyBack.Controllers
         }
 
         /// <summary>
-        /// Genera un código numérico de 6 dígitos usando un generador criptográficamente seguro.
+        /// Genera un c?digo num?rico de 6 d?gitos usando un generador criptogr?ficamente seguro.
         /// </summary>
         private static string GenerateSecureToken()
         {
-            // Usar RandomNumberGenerator para seguridad criptográfica
+            // Usar RandomNumberGenerator para seguridad criptogr?fica
             var bytes = new byte[4];
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(bytes);
             }
-            
-            // Convertir a número positivo y tomar módulo para 6 dígitos
+
+            // Convertir a n?mero positivo y tomar m?dulo para 6 d?gitos
             var number = Math.Abs(BitConverter.ToInt32(bytes, 0)) % 900000 + 100000;
             return number.ToString();
         }
