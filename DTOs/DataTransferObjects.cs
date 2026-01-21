@@ -10,12 +10,12 @@ namespace HoneyBack.DTOs
         public string NombreCompleto { get; set; } = null!;
 
         [Required(ErrorMessage = "El email es requerido")]
-        [EmailAddress(ErrorMessage = "Email inválido")]
+        [EmailAddress(ErrorMessage = "Email invalido")]
         [StringLength(255)]
         public string Email { get; set; } = null!;
 
-        [Required(ErrorMessage = "La contraseña es requerida")]
-        [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
+        [Required(ErrorMessage = "La contrasena es requerida")]
+        [MinLength(6, ErrorMessage = "La contrasena debe tener al menos 6 caracteres")]
         public string Password { get; set; } = null!;
     }
 
@@ -30,7 +30,7 @@ namespace HoneyBack.DTOs
         [StringLength(255)]
         public string Email { get; set; } = null!;
 
-        [MinLength(6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
+        [MinLength(6, ErrorMessage = "La contrasena debe tener al menos 6 caracteres")]
         public string? Password { get; set; }
     }
 
@@ -77,7 +77,7 @@ namespace HoneyBack.DTOs
         public string Estado { get; set; } = "Pendiente";
     }
 
-    // DTOs para Sesión
+    // DTOs para Sesion
     public class SesionCreateDto
     {
         [Required]
@@ -99,7 +99,7 @@ namespace HoneyBack.DTOs
         public string Nombre { get; set; } = null!;
 
         [Required(ErrorMessage = "El email es requerido")]
-        [EmailAddress(ErrorMessage = "Email inválido")]
+        [EmailAddress(ErrorMessage = "Email invalido")]
         [StringLength(255)]
         public string Email { get; set; } = null!;
 
@@ -111,7 +111,7 @@ namespace HoneyBack.DTOs
     // DTOs para CategoriasTransacciones
     public class CategoriaTransaccionCreateDto
     {
-        [Required(ErrorMessage = "El nombre de la categoría es requerido")]
+        [Required(ErrorMessage = "El nombre de la categoria es requerido")]
         [StringLength(100)]
         public string Nombre { get; set; } = null!;
 
@@ -163,6 +163,62 @@ namespace HoneyBack.DTOs
         public bool? EsSistema { get; set; }
         public int? UsuarioId { get; set; }
         public bool? Activa { get; set; }
+    }
+
+    // DTOs para Transacciones
+    public class TransaccionCreateDto
+    {
+        [Required(ErrorMessage = "El nombre de la transaccion es requerido")]
+        [StringLength(200)]
+        public string Nombre { get; set; } = null!;
+
+        [Required(ErrorMessage = "El monto es requerido")]
+        [Range(0.01, double.MaxValue, ErrorMessage = "El monto debe ser mayor a 0")]
+        public decimal Monto { get; set; }
+
+        [Required(ErrorMessage = "El tipo es requerido (ingreso/gasto)")]
+        [StringLength(20)]
+        public string Tipo { get; set; } = null!;
+
+        [Required(ErrorMessage = "La fecha es requerida")]
+        public DateOnly Fecha { get; set; }
+
+        [StringLength(50)]
+        public string? Categoria { get; set; }
+
+        /// <summary>
+        /// Se ignora - El usuarioId se toma del token JWT
+        /// </summary>
+        public int? UsuarioId { get; set; }
+    }
+
+    public class TransaccionUpdateDto
+    {
+        [StringLength(200)]
+        public string? Nombre { get; set; }
+
+        [Range(0.01, double.MaxValue, ErrorMessage = "El monto debe ser mayor a 0")]
+        public decimal? Monto { get; set; }
+
+        [StringLength(20)]
+        public string? Tipo { get; set; }
+
+        public DateOnly? Fecha { get; set; }
+
+        [StringLength(50)]
+        public string? Categoria { get; set; }
+    }
+
+    public class TransaccionResponseDto
+    {
+        public int TransaccionId { get; set; }
+        public int UsuarioId { get; set; }
+        public string Nombre { get; set; } = null!;
+        public decimal Monto { get; set; }
+        public string Tipo { get; set; } = null!;
+        public string Fecha { get; set; } = null!;
+        public string? Categoria { get; set; }
+        public DateTime FechaCreacion { get; set; }
     }
 
     // DTOs para MetasAhorro
@@ -409,6 +465,15 @@ namespace HoneyBack.DTOs
         public string? FormatoFecha { get; set; } = "DD/MM/YYYY";
 
         public bool? PrimeraVez { get; set; } = true;
+
+        [StringLength(3)]
+        public string? MonedaPreferida { get; set; } = "COP";
+
+        [StringLength(100)]
+        public string? NombreUsuario { get; set; }
+
+        [StringLength(500)]
+        public string? AvatarUrl { get; set; }
     }
 
     public class ConfiguracionUsuarioUpdateDto
@@ -432,6 +497,15 @@ namespace HoneyBack.DTOs
         public bool? PrimeraVez { get; set; }
 
         public string? ConfiguracionPersonalizada { get; set; }
+
+        [StringLength(3)]
+        public string? MonedaPreferida { get; set; }
+
+        [StringLength(100)]
+        public string? NombreUsuario { get; set; }
+
+        [StringLength(500)]
+        public string? AvatarUrl { get; set; }
     }
 
     public class ConfiguracionUsuarioResponseDto
@@ -447,9 +521,14 @@ namespace HoneyBack.DTOs
         public bool PrimeraVez { get; set; }
         public string? ConfiguracionPersonalizada { get; set; }
         public DateTime FechaActualizacion { get; set; }
+        public DateTime? FechaCreacion { get; set; }
+        public string? MonedaPreferida { get; set; }
+        public string? NombreUsuario { get; set; }
+        public string? AvatarUrl { get; set; }
+        public bool? EsVeterano { get; set; }
     }
 
-    // DTO genérico para respuestas
+    // DTO generico para respuestas
     public class ApiResponse<T>
     {
         public bool Success { get; set; }

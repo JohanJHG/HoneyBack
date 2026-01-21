@@ -30,6 +30,7 @@ builder.Services.AddScoped<IMetasAhorroService, MetasAhorroService>();
 builder.Services.AddScoped<IEstadisticasMensualesService, EstadisticasMensualesService>();
 builder.Services.AddScoped<ITemplatesService, TemplatesService>();
 builder.Services.AddScoped<IConfiguracionesUsuarioService, ConfiguracionesUsuarioService>();
+builder.Services.AddScoped<ITransaccionesService, TransaccionesService>();
 // JWT Token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 

@@ -34,6 +34,7 @@ namespace HoneyBack.Servicios
 
         public async Task<ConfiguracionesUsuario> CrearAsync(ConfiguracionesUsuario configuracion)
         {
+            configuracion.FechaCreacion = DateTime.Now;
             configuracion.FechaActualizacion = DateTime.Now;
             configuracion.NotificacionesEmail ??= true;
             configuracion.NotificacionesPush ??= true;
@@ -42,6 +43,8 @@ namespace HoneyBack.Servicios
             configuracion.Timezone ??= "America/Bogota";
             configuracion.FormatoFecha ??= "DD/MM/YYYY";
             configuracion.PrimeraVez ??= true;
+            configuracion.MonedaPreferida ??= "COP";
+            configuracion.EsVeterano ??= false;
 
             _context.ConfiguracionesUsuarios.Add(configuracion);
             await _context.SaveChangesAsync();
@@ -54,14 +57,17 @@ namespace HoneyBack.Servicios
             if (configuracionExistente == null)
                 return null;
 
-            configuracionExistente.NotificacionesEmail = configuracion.NotificacionesEmail;
-            configuracionExistente.NotificacionesPush = configuracion.NotificacionesPush;
-            configuracionExistente.Tema = configuracion.Tema;
-            configuracionExistente.Idioma = configuracion.Idioma;
-            configuracionExistente.Timezone = configuracion.Timezone;
-            configuracionExistente.FormatoFecha = configuracion.FormatoFecha;
-            configuracionExistente.PrimeraVez = configuracion.PrimeraVez;
-            configuracionExistente.ConfiguracionPersonalizada = configuracion.ConfiguracionPersonalizada;
+            configuracionExistente.NotificacionesEmail = configuracion.NotificacionesEmail ?? configuracionExistente.NotificacionesEmail;
+            configuracionExistente.NotificacionesPush = configuracion.NotificacionesPush ?? configuracionExistente.NotificacionesPush;
+            configuracionExistente.Tema = configuracion.Tema ?? configuracionExistente.Tema;
+            configuracionExistente.Idioma = configuracion.Idioma ?? configuracionExistente.Idioma;
+            configuracionExistente.Timezone = configuracion.Timezone ?? configuracionExistente.Timezone;
+            configuracionExistente.FormatoFecha = configuracion.FormatoFecha ?? configuracionExistente.FormatoFecha;
+            configuracionExistente.PrimeraVez = configuracion.PrimeraVez ?? configuracionExistente.PrimeraVez;
+            configuracionExistente.ConfiguracionPersonalizada = configuracion.ConfiguracionPersonalizada ?? configuracionExistente.ConfiguracionPersonalizada;
+            configuracionExistente.MonedaPreferida = configuracion.MonedaPreferida ?? configuracionExistente.MonedaPreferida;
+            configuracionExistente.NombreUsuario = configuracion.NombreUsuario ?? configuracionExistente.NombreUsuario;
+            configuracionExistente.AvatarUrl = configuracion.AvatarUrl ?? configuracionExistente.AvatarUrl;
             configuracionExistente.FechaActualizacion = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -86,6 +92,7 @@ namespace HoneyBack.Servicios
                 return false;
 
             configuracion.PrimeraVez = false;
+            configuracion.EsVeterano = true;
             configuracion.FechaActualizacion = DateTime.Now;
             await _context.SaveChangesAsync();
             return true;

@@ -40,4 +40,6 @@ public partial class Usuario
     public virtual ICollection<Sesione> Sesiones { get; set; } = new List<Sesione>();
 
     public virtual ICollection<Template> Templates { get; set; } = new List<Template>();
+
+    public virtual ICollection<Transaccione> Transacciones { get; set; } = new List<Transaccione>();
 }

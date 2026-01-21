@@ -24,6 +24,7 @@
     <None Remove="INFORME_CAMBIOS_AUTENTICACION.md" />
     <None Remove="INFORME_IMPLEMENTACION_COMPLETA.md" />
     <None Remove="INFORME_VALIDACION_COMPLETA.md" />
+    <None Remove="INSTRUCCIONES_BACKEND_AISLAMIENTO.md" />
     <None Remove="METAS_AHORRO_API.md" />
     <None Remove="PROPUESTA_RECUPERACION_PASSWORD.md" />
     <None Remove="README_API.md" />

@@ -20,7 +20,7 @@ namespace HoneyBack.Controllers
         }
 
         /// <summary>
-        /// Obtiene la configuración del usuario autenticado
+        /// Obtiene la configuracion del usuario autenticado
         /// </summary>
         [HttpGet]
         public async Task<ActionResult<ConfiguracionUsuarioResponseDto>> ObtenerMiConfiguracion()
@@ -33,13 +33,13 @@ namespace HoneyBack.Controllers
 
                 var configuracion = await _configuracionesService.ObtenerPorUsuarioIdAsync(userId.Value);
                 if (configuracion == null)
-                    return NotFound(new { mensaje = "Configuración no encontrada" });
+                    return NotFound(new { mensaje = "Configuracion no encontrada" });
 
                 return Ok(MapToDto(configuracion));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al obtener configuración", error = ex.Message });
+                return StatusCode(500, new { mensaje = "Error al obtener configuracion", error = ex.Message });
             }
         }
 
@@ -54,9 +54,9 @@ namespace HoneyBack.Controllers
 
                 var configuracion = await _configuracionesService.ObtenerPorIdAsync(id);
                 if (configuracion == null)
-                    return NotFound(new { mensaje = "Configuración no encontrada" });
+                    return NotFound(new { mensaje = "Configuracion no encontrada" });
 
-                // Validación de propiedad
+                // Validacion de propiedad
                 if (configuracion.UsuarioId != userId.Value)
                     return Forbid();
 
@@ -64,7 +64,7 @@ namespace HoneyBack.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al obtener configuración", error = ex.Message });
+                return StatusCode(500, new { mensaje = "Error al obtener configuracion", error = ex.Message });
             }
         }
 
@@ -77,19 +77,19 @@ namespace HoneyBack.Controllers
                 if (!tokenUserId.HasValue)
                     return Unauthorized(new { mensaje = "Usuario no autenticado" });
 
-                // Solo puede consultar SU configuración
+                // Solo puede consultar SU configuracion
                 if (usuarioId != tokenUserId.Value)
                     return Forbid();
 
                 var configuracion = await _configuracionesService.ObtenerPorUsuarioIdAsync(usuarioId);
                 if (configuracion == null)
-                    return NotFound(new { mensaje = "Configuración no encontrada para el usuario" });
+                    return NotFound(new { mensaje = "Configuracion no encontrada para el usuario" });
 
                 return Ok(MapToDto(configuracion));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al obtener configuración del usuario", error = ex.Message });
+                return StatusCode(500, new { mensaje = "Error al obtener configuracion del usuario", error = ex.Message });
             }
         }
 
@@ -105,11 +105,11 @@ namespace HoneyBack.Controllers
                 if (!userId.HasValue)
                     return Unauthorized(new { mensaje = "Usuario no autenticado" });
 
-                // Verificar si ya existe configuración para el usuario
+                // Verificar si ya existe configuracion para el usuario
                 var existente = await _configuracionesService.ObtenerPorUsuarioIdAsync(userId.Value);
                 if (existente != null)
                 {
-                    return Conflict(new { mensaje = "Ya existe una configuración para este usuario" });
+                    return Conflict(new { mensaje = "Ya existe una configuracion para este usuario" });
                 }
 
                 var configuracion = new ConfiguracionesUsuario
@@ -122,7 +122,10 @@ namespace HoneyBack.Controllers
                     Idioma = configuracionDto.Idioma,
                     Timezone = configuracionDto.Timezone,
                     FormatoFecha = configuracionDto.FormatoFecha,
-                    PrimeraVez = configuracionDto.PrimeraVez
+                    PrimeraVez = configuracionDto.PrimeraVez,
+                    MonedaPreferida = configuracionDto.MonedaPreferida,
+                    NombreUsuario = configuracionDto.NombreUsuario,
+                    AvatarUrl = configuracionDto.AvatarUrl
                 };
 
                 var configuracionCreada = await _configuracionesService.CrearAsync(configuracion);
@@ -130,7 +133,7 @@ namespace HoneyBack.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al crear configuración", error = ex.Message });
+                return StatusCode(500, new { mensaje = "Error al crear configuracion", error = ex.Message });
             }
         }
 
@@ -149,7 +152,7 @@ namespace HoneyBack.Controllers
                 // Validar propiedad antes de actualizar
                 var configuracionExistente = await _configuracionesService.ObtenerPorIdAsync(id);
                 if (configuracionExistente == null)
-                    return NotFound(new { mensaje = "Configuración no encontrada" });
+                    return NotFound(new { mensaje = "Configuracion no encontrada" });
 
                 if (configuracionExistente.UsuarioId != userId.Value)
                     return Forbid();
@@ -163,7 +166,10 @@ namespace HoneyBack.Controllers
                     Timezone = configuracionDto.Timezone,
                     FormatoFecha = configuracionDto.FormatoFecha,
                     PrimeraVez = configuracionDto.PrimeraVez,
-                    ConfiguracionPersonalizada = configuracionDto.ConfiguracionPersonalizada
+                    ConfiguracionPersonalizada = configuracionDto.ConfiguracionPersonalizada,
+                    MonedaPreferida = configuracionDto.MonedaPreferida,
+                    NombreUsuario = configuracionDto.NombreUsuario,
+                    AvatarUrl = configuracionDto.AvatarUrl
                 };
 
                 var configuracionActualizada = await _configuracionesService.ActualizarAsync(id, configuracion);
@@ -171,7 +177,7 @@ namespace HoneyBack.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al actualizar configuración", error = ex.Message });
+                return StatusCode(500, new { mensaje = "Error al actualizar configuracion", error = ex.Message });
             }
         }
 
@@ -184,13 +190,13 @@ namespace HoneyBack.Controllers
                 if (!tokenUserId.HasValue)
                     return Unauthorized(new { mensaje = "Usuario no autenticado" });
 
-                // Solo puede marcar SU configuración
+                // Solo puede marcar SU configuracion
                 if (usuarioId != tokenUserId.Value)
                     return Forbid();
 
                 var resultado = await _configuracionesService.MarcarComoVeterano(usuarioId);
                 if (!resultado)
-                    return NotFound(new { mensaje = "Configuración no encontrada" });
+                    return NotFound(new { mensaje = "Configuracion no encontrada" });
 
                 return Ok(new { mensaje = "Usuario marcado como veterano exitosamente" });
             }
@@ -212,17 +218,17 @@ namespace HoneyBack.Controllers
                 // Validar propiedad antes de eliminar
                 var configuracion = await _configuracionesService.ObtenerPorIdAsync(id);
                 if (configuracion == null)
-                    return NotFound(new { mensaje = "Configuración no encontrada" });
+                    return NotFound(new { mensaje = "Configuracion no encontrada" });
 
                 if (configuracion.UsuarioId != userId.Value)
                     return Forbid();
 
                 await _configuracionesService.EliminarAsync(id);
-                return Ok(new { mensaje = "Configuración eliminada exitosamente" });
+                return Ok(new { mensaje = "Configuracion eliminada exitosamente" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { mensaje = "Error al eliminar configuración", error = ex.Message });
+                return StatusCode(500, new { mensaje = "Error al eliminar configuracion", error = ex.Message });
             }
         }
 
@@ -240,7 +246,12 @@ namespace HoneyBack.Controllers
                 FormatoFecha = configuracion.FormatoFecha ?? "DD/MM/YYYY",
                 PrimeraVez = configuracion.PrimeraVez ?? true,
                 ConfiguracionPersonalizada = configuracion.ConfiguracionPersonalizada,
-                FechaActualizacion = configuracion.FechaActualizacion ?? DateTime.Now
+                FechaActualizacion = configuracion.FechaActualizacion ?? DateTime.Now,
+                FechaCreacion = configuracion.FechaCreacion,
+                MonedaPreferida = configuracion.MonedaPreferida ?? "COP",
+                NombreUsuario = configuracion.NombreUsuario,
+                AvatarUrl = configuracion.AvatarUrl,
+                EsVeterano = configuracion.EsVeterano ?? false
             };
         }
     }

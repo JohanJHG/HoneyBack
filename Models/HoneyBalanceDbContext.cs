@@ -31,6 +31,8 @@ public partial class HoneyBalanceDbContext : DbContext
 
     public virtual DbSet<Template> Templates { get; set; }
 
+    public virtual DbSet<Transaccione> Transacciones { get; set; }
+
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
     public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
@@ -105,6 +107,19 @@ public partial class HoneyBalanceDbContext : DbContext
                 .HasMaxLength(50)
                 .HasDefaultValue("America/Bogota");
             entity.Property(e => e.UsuarioId).HasColumnName("UsuarioID");
+            entity.Property(e => e.MonedaPreferida)
+                .HasMaxLength(3)
+                .HasDefaultValue("COP");
+            entity.Property(e => e.NombreUsuario)
+                .HasMaxLength(100);
+            entity.Property(e => e.AvatarUrl)
+                .HasMaxLength(500)
+                .HasColumnName("AvatarURL");
+            entity.Property(e => e.EsVeterano)
+                .HasDefaultValue(false);
+            entity.Property(e => e.FechaCreacion)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
 
             entity.HasOne(d => d.Usuario).WithOne(p => p.ConfiguracionesUsuario)
                 .HasForeignKey<ConfiguracionesUsuario>(d => d.UsuarioId)
@@ -290,6 +305,34 @@ public partial class HoneyBalanceDbContext : DbContext
             entity.HasOne(d => d.Usuario).WithMany(p => p.Templates)
                 .HasForeignKey(d => d.UsuarioId)
                 .HasConstraintName("FK_Templates_Usuarios");
+        });
+
+        modelBuilder.Entity<Transaccione>(entity =>
+        {
+            entity.HasKey(e => e.TransaccionId).HasName("PK_Transacciones");
+
+            entity.ToTable("Transacciones");
+
+            entity.HasIndex(e => e.UsuarioId, "IDX_Transacciones_Usuario");
+
+            entity.HasIndex(e => e.Fecha, "IDX_Transacciones_Fecha");
+
+            entity.HasIndex(e => e.Tipo, "IDX_Transacciones_Tipo");
+
+            entity.Property(e => e.TransaccionId).HasColumnName("TransaccionID");
+            entity.Property(e => e.UsuarioId).HasColumnName("UsuarioID");
+            entity.Property(e => e.Nombre).HasMaxLength(200);
+            entity.Property(e => e.Monto).HasColumnType("decimal(15, 2)");
+            entity.Property(e => e.Tipo).HasMaxLength(20);
+            entity.Property(e => e.Categoria).HasMaxLength(50);
+            entity.Property(e => e.FechaCreacion)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Usuario).WithMany(p => p.Transacciones)
+                .HasForeignKey(d => d.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_Transacciones_Usuarios");
         });
 
         modelBuilder.Entity<Usuario>(entity =>

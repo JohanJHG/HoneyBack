@@ -27,5 +27,27 @@ public partial class ConfiguracionesUsuario
 
     public DateTime? FechaActualizacion { get; set; }
 
+    public DateTime? FechaCreacion { get; set; }
+
+    /// <summary>
+    /// Moneda preferida del usuario (COP, USD, EUR, etc.)
+    /// </summary>
+    public string? MonedaPreferida { get; set; }
+
+    /// <summary>
+    /// Nombre de display del usuario
+    /// </summary>
+    public string? NombreUsuario { get; set; }
+
+    /// <summary>
+    /// URL o base64 del avatar del usuario
+    /// </summary>
+    public string? AvatarUrl { get; set; }
+
+    /// <summary>
+    /// Indica si el usuario es veterano (lleva tiempo usando la app)
+    /// </summary>
+    public bool? EsVeterano { get; set; }
+
     public virtual Usuario Usuario { get; set; } = null!;
 }
