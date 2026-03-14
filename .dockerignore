@@ -1,0 +1,84 @@
+# =============================================
+# .dockerignore - HoneyBack API
+# Excluir archivos innecesarios para reducir
+# tamaño de imagen y mejorar tiempo de build
+# =============================================
+
+# Directorios de build
+**/bin/
+**/obj/
+**/out/
+
+# Publicaciones anteriores
+**/publish/
+
+# Archivos de Visual Studio
+.vs/
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+
+# Archivos de Rider/JetBrains
+.idea/
+*.sln.iml
+
+# Archivos de VS Code
+.vscode/
+
+# Archivos de Node (si hay frontend)
+**/node_modules/
+
+# Archivos de pruebas
+**/TestResults/
+**/coverage/
+**/*.trx
+
+# Archivos de log
+*.log
+logs/
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Archivos de configuración local
+appsettings.Development.json
+launchSettings.json
+Properties/launchSettings.json
+
+# Archivos de secretos
+*.pfx
+*.p12
+secrets.json
+
+# Archivos de Docker (no necesarios dentro del contenedor)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Archivos de documentación
+*.md
+!README.md
+docs/
+
+# Archivos de Git
+.git/
+.gitignore
+.gitattributes
+
+# Archivos de backup
+*.bak
+*.backup
+backups/
+
+# Carpetas vacías o de pruebas
+NewFolder/
+Tests/
+
+# Scripts de PowerShell/Bash
+*.ps1
+*.sh
+
+# Archivos SQL de migración manual
+Migrations/SQL/

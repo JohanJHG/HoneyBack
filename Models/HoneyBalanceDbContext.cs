@@ -39,13 +39,13 @@ public partial class HoneyBalanceDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        // Solo configurar si no hay opciones previas (para design-time/migraciones)
-        // En runtime, Program.cs y docker-compose.yml configuran la conexión
-        if (!optionsBuilder.IsConfigured)
-        {
-            // Conexión local para desarrollo/migraciones
-            optionsBuilder.UseSqlServer("Server=JOHAN\\SQLEXPRESS;Database=HoneyBalanceDB;Integrated Security=true;TrustServerCertificate=True");
-        }
+        // NOTA: En runtime, la conexión se configura en Program.cs vía AddDbContext
+        // Este método solo se usa para design-time (migraciones EF)
+        // NO incluir conexión hardcodeada aquí para evitar conflictos en Docker
+        
+        // Para migraciones en desarrollo, usar:
+        // dotnet ef migrations add <NombreMigracion> --project HoneyBack.csproj
+        // La conexión se toma de appsettings.json o variables de entorno
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

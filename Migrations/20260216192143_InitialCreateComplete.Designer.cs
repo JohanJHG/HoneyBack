@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HoneyBack.Migrations
 {
     [DbContext(typeof(HoneyBalanceDbContext))]
-    [Migration("20260119202209_AddCategoriaToMetasAhorro")]
-    partial class AddCategoriaToMetasAhorro
+    [Migration("20260216192143_InitialCreateComplete")]
+    partial class InitialCreateComplete
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.0")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -91,10 +91,25 @@ namespace HoneyBack.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConfiguracionId"));
 
+                    b.Property<string>("AvatarUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)")
+                        .HasColumnName("AvatarURL");
+
                     b.Property<string>("ConfiguracionPersonalizada")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool?>("EsVeterano")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<DateTime?>("FechaActualizacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<DateTime?>("FechaCreacion")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime")
                         .HasDefaultValueSql("(getdate())");
@@ -110,6 +125,16 @@ namespace HoneyBack.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)")
                         .HasDefaultValue("es");
+
+                    b.Property<string>("MonedaPreferida")
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)")
+                        .HasDefaultValue("COP");
+
+                    b.Property<string>("NombreUsuario")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool?>("NotificacionesEmail")
                         .ValueGeneratedOnAdd()
@@ -588,6 +613,56 @@ namespace HoneyBack.Migrations
                     b.ToTable("Templates");
                 });
 
+            modelBuilder.Entity("HoneyBack.Models.Transaccione", b =>
+                {
+                    b.Property<int>("TransaccionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("TransaccionID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransaccionId"));
+
+                    b.Property<string>("Categoria")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("(getdate())");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(15, 2)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Tipo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int")
+                        .HasColumnName("UsuarioID");
+
+                    b.HasKey("TransaccionId")
+                        .HasName("PK_Transacciones");
+
+                    b.HasIndex(new[] { "Fecha" }, "IDX_Transacciones_Fecha");
+
+                    b.HasIndex(new[] { "Tipo" }, "IDX_Transacciones_Tipo");
+
+                    b.HasIndex(new[] { "UsuarioId" }, "IDX_Transacciones_Usuario");
+
+                    b.ToTable("Transacciones", (string)null);
+                });
+
             modelBuilder.Entity("HoneyBack.Models.Usuario", b =>
                 {
                     b.Property<int>("UsuarioId")
@@ -769,6 +844,18 @@ namespace HoneyBack.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("HoneyBack.Models.Transaccione", b =>
+                {
+                    b.HasOne("HoneyBack.Models.Usuario", "Usuario")
+                        .WithMany("Transacciones")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_Transacciones_Usuarios");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("HoneyBack.Models.CategoriasTransaccione", b =>
                 {
                     b.Navigation("EstadisticasMensuales");
@@ -793,6 +880,8 @@ namespace HoneyBack.Migrations
                     b.Navigation("Sesiones");
 
                     b.Navigation("Templates");
+
+                    b.Navigation("Transacciones");
                 });
 #pragma warning restore 612, 618
         }

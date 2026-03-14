@@ -1,6 +1,7 @@
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Resend;
@@ -17,8 +18,16 @@ builder.Services.AddControllers()
     });
 
 // Configurar Entity Framework con SQL Server
+var connectionString = builder.Configuration.GetConnectionString("conexion");
 builder.Services.AddDbContext<HoneyBalanceDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("conexion")));
+    options.UseSqlServer(connectionString));
+
+// Health checks (para Docker healthcheck y monitoreo)
+builder.Services.AddHealthChecks()
+    .AddSqlServer(
+        connectionString ?? throw new InvalidOperationException("ConnectionStrings:conexion no configurado"),
+        name: "sqlserver",
+        timeout: TimeSpan.FromSeconds(30));
 
 // Registrar servicios
 builder.Services.AddScoped<IUsuariosService, UsuariosService>();
@@ -50,15 +59,18 @@ else
 {
     // Fallback: servicio que no envía emails (solo logging)
     builder.Services.AddScoped<IEmailService, NoOpEmailService>();
-    Console.WriteLine("[ADVERTENCIA] Resend:ApiKey no configurada. Los emails no se enviaran. Configure con: dotnet user-secrets set \"Resend:ApiKey\" \"<tu-api-key>\"");
+    Console.WriteLine("[ADVERTENCIA] Resend:ApiKey no configurada. Los emails no se enviarán. Configure con: dotnet user-secrets set \"Resend:ApiKey\" \"<tu-api-key>\"");
 }
 
-// Configurar CORS para Angular
+// Configurar CORS para Angular (desarrollo y producción)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
     {
-        policy.WithOrigins("http://localhost:4200", "http://localhost:4201")
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? new[] { "http://localhost:4200", "http://localhost:4201" };
+        
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -148,14 +160,107 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// ============================================================
+// APLICAR MIGRACIONES AUTOMÁTICAMENTE (crítico para Docker)
+// ============================================================
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    
+    try
+    {
+        var context = services.GetRequiredService<HoneyBalanceDbContext>();
+        
+        // Esperar a que la base de datos esté disponible (importante en Docker)
+        var maxRetries = 15;
+        var delay = TimeSpan.FromSeconds(5);
+        
+        for (int i = 0; i < maxRetries; i++)
+        {
+            try
+            {
+                logger.LogInformation("Intentando conectar a la base de datos (intento {Attempt}/{MaxRetries})...", i + 1, maxRetries);
+                
+                if (await context.Database.CanConnectAsync())
+                {
+                    logger.LogInformation("? Conexión a la base de datos establecida exitosamente.");
+                    break;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "? No se pudo conectar a la base de datos. Reintentando en {Delay} segundos... (Intento {Attempt}/{MaxRetries})", delay.TotalSeconds, i + 1, maxRetries);
+                
+                if (i == maxRetries - 1)
+                {
+                    logger.LogError("? No se pudo establecer conexión con la base de datos después de {MaxRetries} intentos.", maxRetries);
+                    throw;
+                }
+                
+                await Task.Delay(delay);
+            }
+        }
+        
+        // Aplicar migraciones pendientes
+        logger.LogInformation("Verificando y aplicando migraciones de base de datos...");
+        var pendingMigrations = await context.Database.GetPendingMigrationsAsync();
+        
+        if (pendingMigrations.Any())
+        {
+            logger.LogInformation("Se encontraron {Count} migraciones pendientes. Aplicando...", pendingMigrations.Count());
+            await context.Database.MigrateAsync();
+            logger.LogInformation("? Migraciones aplicadas exitosamente.");
+        }
+        else
+        {
+            logger.LogInformation("? La base de datos está actualizada. No hay migraciones pendientes.");
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "? Error crítico al aplicar migraciones de base de datos.");
+        // En desarrollo, podemos continuar; en producción, debería fallar
+        if (!app.Environment.IsDevelopment())
+        {
+            throw;
+        }
+        logger.LogWarning("Continuando en modo desarrollo a pesar del error de migración.");
+    }
+}
+
 // Habilitar CORS
 app.UseCors("AllowAngularApp");
 
-if (app.Environment.IsDevelopment())
+// Swagger habilitado en todos los entornos (útil para testing en Docker)
+// En producción real, considerar deshabilitar o proteger
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "HoneyBack API v1");
+    c.RoutePrefix = "swagger";
+});
+
+// Health check endpoint
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var result = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                exception = e.Value.Exception?.Message,
+                duration = e.Value.Duration.ToString()
+            })
+        });
+        await context.Response.WriteAsync(result);
+    }
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
