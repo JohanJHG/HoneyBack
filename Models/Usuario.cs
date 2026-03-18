@@ -25,21 +25,15 @@ public partial class Usuario
 
     public string? AvatarUrl { get; set; }
 
-    public virtual ICollection<CategoriasTransaccione> CategoriasTransacciones { get; set; } = new List<CategoriasTransaccione>();
-
     public virtual ConfiguracionesUsuario? ConfiguracionesUsuario { get; set; }
-
-    public virtual ICollection<EstadisticasMensuale> EstadisticasMensuales { get; set; } = new List<EstadisticasMensuale>();
 
     public virtual ICollection<MensajesContacto> MensajesContactos { get; set; } = new List<MensajesContacto>();
 
     public virtual ICollection<MetasAhorro> MetasAhorros { get; set; } = new List<MetasAhorro>();
 
-    public virtual ICollection<Reporte> Reportes { get; set; } = new List<Reporte>();
-
     public virtual ICollection<Sesione> Sesiones { get; set; } = new List<Sesione>();
 
-    public virtual ICollection<Template> Templates { get; set; } = new List<Template>();
-
     public virtual ICollection<Transaccione> Transacciones { get; set; } = new List<Transaccione>();
+
+    public virtual ICollection<EntornoPersonal> EntornosPersonales { get; set; } = new List<EntornoPersonal>();
 }

@@ -6,7 +6,7 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "Jwt__Key": "Johan3208365126*-SecureKey-2024-HoneyBalance!"
+        "Jwt__Key": "DEV-ONLY-KEY-CHANGE-ME-1234567890abcdef"
       },
       "applicationUrl": "http://localhost:5291"
     },
@@ -16,7 +16,7 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "Jwt__Key": "Johan3208365126*-SecureKey-2024-HoneyBalance!"
+        "Jwt__Key": "DEV-ONLY-KEY-CHANGE-ME-1234567890abcdef"
       }
     },
     "WSL": {
@@ -26,7 +26,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_URLS": "http://localhost:5291",
-        "Jwt__Key": "Johan3208365126*-SecureKey-2024-HoneyBalance!"
+        "Jwt__Key": "DEV-ONLY-KEY-CHANGE-ME-1234567890abcdef"
       },
       "distributionName": ""
     }

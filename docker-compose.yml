@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   # ============================================
   # SQL Server Database
@@ -9,30 +7,29 @@ services:
     container_name: honeyback_sql
     environment:
       - ACCEPT_EULA=Y
-      - SA_PASSWORD=${SA_PASSWORD:-Johan3208365126*}
+      - SA_PASSWORD=${SA_PASSWORD}
       - MSSQL_PID=Express
     ports:
-      - "1434:1433"  # Puerto 1434 en host (evita conflicto con SQL local)
+      - "1434:1433"
     volumes:
       - sql_data:/var/opt/mssql
       - ./backups:/var/opt/mssql/backup
     networks:
       - honeyback-network
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'Johan3208365126*' -Q 'SELECT 1' -C -b -o /dev/null"]
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"${SA_PASSWORD}\" -Q \"SELECT 1\" -C -b -o /dev/null"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 60s
     restart: unless-stopped
-    # Limitar recursos (opcional pero recomendado)
     deploy:
       resources:
         limits:
           memory: 2G
 
   # ============================================
-  # HoneyBack API
+  # HoneyBack API (.NET 8)
   # ============================================
   honeyback_api:
     build:
@@ -40,18 +37,15 @@ services:
       dockerfile: Dockerfile
     container_name: honeyback_api
     environment:
-      # Entorno ASP.NET Core
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://+:80
-      # Cadena de conexion (usa nombre del servicio 'sqlserver' como host)
-      - ConnectionStrings__conexion=Server=sqlserver;Database=HoneyBalanceDB;User Id=sa;Password=${SA_PASSWORD:-Johan3208365126*};TrustServerCertificate=True;Encrypt=True;MultipleActiveResultSets=true;Connection Timeout=60
-      # Configuracion JWT
+      - ConnectionStrings__conexion=Server=sqlserver;Database=HoneyBalanceDB;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True;Encrypt=True;MultipleActiveResultSets=true;Connection Timeout=60
       - Jwt__Issuer=HoneyBack
       - Jwt__Audience=HoneyBack
-      - Jwt__Key=${JWT_KEY:-Johan3208365126*-SecureKey-2024-HoneyBalance!}
+      - Jwt__Key=${JWT_KEY}
       - Jwt__ExpiresInMinutes=60
-      # CORS (origenes permitidos separados por coma si se implementa lectura desde env)
-      # - Cors__AllowedOrigins__0=http://localhost:4200
+      - Cors__AllowedOrigins__0=http://localhost:4200
+      - Cors__AllowedOrigins__1=http://localhost:3000
     ports:
       - "5291:80"
     depends_on:
@@ -60,29 +54,41 @@ services:
     networks:
       - honeyback-network
     restart: unless-stopped
-    # Health check
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 90s
-    # Limitar recursos (opcional)
     deploy:
       resources:
         limits:
           memory: 512M
 
-# ============================================
-# Volumenes persistentes
-# ============================================
+  # ============================================
+  # HoneyBalance Frontend (Angular)
+  # ============================================
+  honeybalance_web:
+    build:
+      context: ../../../Desktop/honeybalance/honeybalance-angular
+      dockerfile: Dockerfile
+    container_name: honeybalance_web
+    ports:
+      - "4200:80"
+    depends_on:
+      - honeyback_api
+    networks:
+      - honeyback-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
 volumes:
   sql_data:
     driver: local
 
-# ============================================
-# Redes
-# ============================================
 networks:
   honeyback-network:
     driver: bridge

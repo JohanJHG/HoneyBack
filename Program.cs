@@ -31,19 +31,16 @@ builder.Services.AddHealthChecks()
 
 // Registrar servicios
 builder.Services.AddScoped<IUsuariosService, UsuariosService>();
-builder.Services.AddScoped<IReportesService, ReportesService>();
 builder.Services.AddScoped<ISesionesService, SesionesService>();
 builder.Services.AddScoped<IMensajesContactoService, MensajesContactoService>();
-builder.Services.AddScoped<ICategoriasTransaccionesService, CategoriasTransaccionesService>();
 builder.Services.AddScoped<IMetasAhorroService, MetasAhorroService>();
-builder.Services.AddScoped<IEstadisticasMensualesService, EstadisticasMensualesService>();
-builder.Services.AddScoped<ITemplatesService, TemplatesService>();
 builder.Services.AddScoped<IConfiguracionesUsuarioService, ConfiguracionesUsuarioService>();
 builder.Services.AddScoped<ITransaccionesService, TransaccionesService>();
+builder.Services.AddScoped<IEntornosPersonalesService, EntornosPersonalesService>();
 // JWT Token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
-// Configurar Resend para envío de emails
+// Configurar Resend para envï¿½o de emails
 var resendApiKey = builder.Configuration["Resend:ApiKey"];
 if (!string.IsNullOrWhiteSpace(resendApiKey))
 {
@@ -57,12 +54,12 @@ if (!string.IsNullOrWhiteSpace(resendApiKey))
 }
 else
 {
-    // Fallback: servicio que no envía emails (solo logging)
+    // Fallback: servicio que no envï¿½a emails (solo logging)
     builder.Services.AddScoped<IEmailService, NoOpEmailService>();
-    Console.WriteLine("[ADVERTENCIA] Resend:ApiKey no configurada. Los emails no se enviarán. Configure con: dotnet user-secrets set \"Resend:ApiKey\" \"<tu-api-key>\"");
+    Console.WriteLine("[ADVERTENCIA] Resend:ApiKey no configurada. Los emails no se enviarï¿½n. Configure con: dotnet user-secrets set \"Resend:ApiKey\" \"<tu-api-key>\"");
 }
 
-// Configurar CORS para Angular (desarrollo y producción)
+// Configurar CORS para Angular (desarrollo y producciï¿½n)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularApp", policy =>
@@ -77,12 +74,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Autenticación JWT
+// Autenticaciï¿½n JWT
 var issuer = builder.Configuration["Jwt:Issuer"];
 var audience = builder.Configuration["Jwt:Audience"];
 var key = builder.Configuration["Jwt:Key"]; // usar user-secrets/variables entorno
 
-// Validar / proporcionar clave en desarrollo para evitar excepción
+// Validar / proporcionar clave en desarrollo para evitar excepciï¿½n
 if (string.IsNullOrWhiteSpace(key))
 {
     if (builder.Environment.IsDevelopment())
@@ -125,7 +122,7 @@ builder.Services.AddSwaggerGen(c =>
     { 
         Title = "HoneyBack API", 
         Version = "v1",
-        Description = "API de HoneyBack con autenticación JWT"
+        Description = "API de HoneyBack con autenticaciï¿½n JWT"
     });
     
     // Definir el esquema de seguridad Bearer JWT
@@ -161,7 +158,7 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 // ============================================================
-// APLICAR MIGRACIONES AUTOMÁTICAMENTE (crítico para Docker)
+// APLICAR MIGRACIONES AUTOMï¿½TICAMENTE (crï¿½tico para Docker)
 // ============================================================
 using (var scope = app.Services.CreateScope())
 {
@@ -172,7 +169,7 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<HoneyBalanceDbContext>();
         
-        // Esperar a que la base de datos esté disponible (importante en Docker)
+        // Esperar a que la base de datos estï¿½ disponible (importante en Docker)
         var maxRetries = 15;
         var delay = TimeSpan.FromSeconds(5);
         
@@ -184,7 +181,7 @@ using (var scope = app.Services.CreateScope())
                 
                 if (await context.Database.CanConnectAsync())
                 {
-                    logger.LogInformation("? Conexión a la base de datos establecida exitosamente.");
+                    logger.LogInformation("? Conexiï¿½n a la base de datos establecida exitosamente.");
                     break;
                 }
             }
@@ -194,7 +191,7 @@ using (var scope = app.Services.CreateScope())
                 
                 if (i == maxRetries - 1)
                 {
-                    logger.LogError("? No se pudo establecer conexión con la base de datos después de {MaxRetries} intentos.", maxRetries);
+                    logger.LogError("? No se pudo establecer conexiï¿½n con la base de datos despuï¿½s de {MaxRetries} intentos.", maxRetries);
                     throw;
                 }
                 
@@ -214,26 +211,26 @@ using (var scope = app.Services.CreateScope())
         }
         else
         {
-            logger.LogInformation("? La base de datos está actualizada. No hay migraciones pendientes.");
+            logger.LogInformation("? La base de datos estï¿½ actualizada. No hay migraciones pendientes.");
         }
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "? Error crítico al aplicar migraciones de base de datos.");
-        // En desarrollo, podemos continuar; en producción, debería fallar
+        logger.LogError(ex, "? Error crï¿½tico al aplicar migraciones de base de datos.");
+        // En desarrollo, podemos continuar; en producciï¿½n, deberï¿½a fallar
         if (!app.Environment.IsDevelopment())
         {
             throw;
         }
-        logger.LogWarning("Continuando en modo desarrollo a pesar del error de migración.");
+        logger.LogWarning("Continuando en modo desarrollo a pesar del error de migraciï¿½n.");
     }
 }
 
 // Habilitar CORS
 app.UseCors("AllowAngularApp");
 
-// Swagger habilitado en todos los entornos (útil para testing en Docker)
-// En producción real, considerar deshabilitar o proteger
+// Swagger habilitado en todos los entornos (ï¿½til para testing en Docker)
+// En producciï¿½n real, considerar deshabilitar o proteger
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {

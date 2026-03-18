@@ -1,5 +1,5 @@
 # ============================================
-# Etapa de construcción (Build Stage)
+# Etapa de construccion (Build Stage)
 # ============================================
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
@@ -15,7 +15,7 @@ COPY . .
 RUN dotnet build "HoneyBack.csproj" -c Release -o /app/build --no-restore
 
 # ============================================
-# Etapa de publicación (Publish Stage)
+# Etapa de publicacion (Publish Stage)
 # ============================================
 FROM build AS publish
 RUN dotnet publish "HoneyBack.csproj" -c Release -o /app/publish /p:UseAppHost=false --no-restore
@@ -31,20 +31,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl \
 
 # Establecer variables de entorno
 ENV ASPNETCORE_URLS=http://+:80
-ENV ASPNETCORE_ENVIRONMENT=Development
+ENV ASPNETCORE_ENVIRONMENT=Docker
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 
 WORKDIR /app
 
-# Exponer puerto HTTP (HTTPS se maneja por reverse proxy en producción)
+# Exponer puerto HTTP (HTTPS se maneja por reverse proxy en produccion)
 EXPOSE 80
 
-# Crear usuario no-root para seguridad (opcional pero recomendado)
-# RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
-# USER appuser
+# Crear usuario no-root para seguridad
+RUN adduser --disabled-password --gecos '' appuser && chown -R appuser /app
 
 # Copiar archivos publicados desde la etapa anterior
 COPY --from=publish /app/publish .
+
+# Cambiar a usuario no-root
+USER appuser
 
 # Health check para Docker y orquestadores
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \

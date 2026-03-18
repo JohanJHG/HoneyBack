@@ -42,41 +42,6 @@ namespace HoneyBack.DTOs
         public DateTime FechaRegistro { get; set; }
     }
 
-    // DTOs para Reporte
-    public class ReporteCreateDto
-    {
-        [Required(ErrorMessage = "El nombre del reporte es requerido")]
-        [StringLength(255)]
-        public string Nombre { get; set; } = null!;
-
-        [Required(ErrorMessage = "El tipo de reporte es requerido")]
-        [StringLength(50)]
-        public string TipoReporte { get; set; } = null!;
-
-        [StringLength(1000)]
-        public string? Descripcion { get; set; }
-
-        [Required(ErrorMessage = "El ID del usuario es requerido")]
-        public int UsuarioId { get; set; }
-    }
-
-    public class ReporteUpdateDto
-    {
-        [Required]
-        [StringLength(255)]
-        public string Nombre { get; set; } = null!;
-
-        [Required]
-        [StringLength(50)]
-        public string TipoReporte { get; set; } = null!;
-
-        [StringLength(1000)]
-        public string? Descripcion { get; set; }
-
-        [StringLength(20)]
-        public string Estado { get; set; } = "Pendiente";
-    }
-
     // DTOs para Sesion
     public class SesionCreateDto
     {
@@ -106,63 +71,6 @@ namespace HoneyBack.DTOs
         [Required(ErrorMessage = "El mensaje es requerido")]
         [StringLength(2000, MinimumLength = 10, ErrorMessage = "El mensaje debe tener entre 10 y 2000 caracteres")]
         public string Mensaje { get; set; } = null!;
-    }
-
-    // DTOs para CategoriasTransacciones
-    public class CategoriaTransaccionCreateDto
-    {
-        [Required(ErrorMessage = "El nombre de la categoria es requerido")]
-        [StringLength(100)]
-        public string Nombre { get; set; } = null!;
-
-        [Required(ErrorMessage = "El tipo es requerido (Ingreso/Gasto)")]
-        [StringLength(20)]
-        public string Tipo { get; set; } = null!;
-
-        [StringLength(7)]
-        [RegularExpression(@"^#([A-Fa-f0-9]{6})$", ErrorMessage = "El color debe ser en formato hexadecimal (ej: #FFD8A9)")]
-        public string? Color { get; set; }
-
-        [StringLength(50)]
-        public string? Icono { get; set; }
-
-        public bool? EsSistema { get; set; }
-
-        public int? UsuarioId { get; set; }
-
-        public bool? Activa { get; set; } = true;
-    }
-
-    public class CategoriaTransaccionUpdateDto
-    {
-        [Required]
-        [StringLength(100)]
-        public string Nombre { get; set; } = null!;
-
-        [Required]
-        [StringLength(20)]
-        public string Tipo { get; set; } = null!;
-
-        [StringLength(7)]
-        [RegularExpression(@"^#([A-Fa-f0-9]{6})$", ErrorMessage = "El color debe ser en formato hexadecimal")]
-        public string? Color { get; set; }
-
-        [StringLength(50)]
-        public string? Icono { get; set; }
-
-        public bool? Activa { get; set; }
-    }
-
-    public class CategoriaTransaccionResponseDto
-    {
-        public int CategoriaId { get; set; }
-        public string Nombre { get; set; } = null!;
-        public string Tipo { get; set; } = null!;
-        public string? Color { get; set; }
-        public string? Icono { get; set; }
-        public bool? EsSistema { get; set; }
-        public int? UsuarioId { get; set; }
-        public bool? Activa { get; set; }
     }
 
     // DTOs para Transacciones
@@ -318,130 +226,6 @@ namespace HoneyBack.DTOs
         public decimal PorcentajeAvance => MontoObjetivo > 0 ? Math.Round((MontoActual / MontoObjetivo) * 100, 2) : 0;
     }
 
-    // DTOs para EstadisticasMensuales
-    public class EstadisticaMensualCreateDto
-    {
-        [Required]
-        public int UsuarioId { get; set; }
-
-        [Required]
-        [Range(2020, 2100)]
-        public int Anio { get; set; }
-
-        [Required]
-        [Range(1, 12)]
-        public int Mes { get; set; }
-
-        [Range(0, double.MaxValue)]
-        public decimal? TotalIngresos { get; set; }
-
-        [Range(0, double.MaxValue)]
-        public decimal? TotalGastos { get; set; }
-
-        public int? NumTransacciones { get; set; }
-
-        public int? CategoriaMayorGastoId { get; set; }
-
-        [Range(0, double.MaxValue)]
-        public decimal? MontoMayorGasto { get; set; }
-    }
-
-    public class EstadisticaMensualUpdateDto
-    {
-        [Range(0, double.MaxValue)]
-        public decimal? TotalIngresos { get; set; }
-
-        [Range(0, double.MaxValue)]
-        public decimal? TotalGastos { get; set; }
-
-        public int? NumTransacciones { get; set; }
-
-        public int? CategoriaMayorGastoId { get; set; }
-
-        [Range(0, double.MaxValue)]
-        public decimal? MontoMayorGasto { get; set; }
-    }
-
-    public class EstadisticaMensualResponseDto
-    {
-        public int EstadisticaId { get; set; }
-        public int UsuarioId { get; set; }
-        public int Anio { get; set; }
-        public int Mes { get; set; }
-        public decimal TotalIngresos { get; set; }
-        public decimal TotalGastos { get; set; }
-        public decimal Balance { get; set; }
-        public int NumTransacciones { get; set; }
-        public int? CategoriaMayorGastoId { get; set; }
-        public string? CategoriaMayorGastoNombre { get; set; }
-        public decimal? MontoMayorGasto { get; set; }
-        public DateTime FechaCalculo { get; set; }
-    }
-
-    // DTOs para Templates
-    public class TemplateCreateDto
-    {
-        [Required(ErrorMessage = "El nombre del template es requerido")]
-        [StringLength(200)]
-        public string Nombre { get; set; } = null!;
-
-        [Required]
-        public int UsuarioId { get; set; }
-
-        [Required]
-        public int CategoriaId { get; set; }
-
-        [Required]
-        [Range(0.01, double.MaxValue, ErrorMessage = "El monto debe ser mayor a 0")]
-        public decimal Monto { get; set; }
-
-        [StringLength(1000)]
-        public string? Descripcion { get; set; }
-
-        [Required]
-        [StringLength(20)]
-        public string Tipo { get; set; } = null!;
-    }
-
-    public class TemplateUpdateDto
-    {
-        [Required]
-        [StringLength(200)]
-        public string Nombre { get; set; } = null!;
-
-        [Required]
-        public int CategoriaId { get; set; }
-
-        [Required]
-        [Range(0.01, double.MaxValue)]
-        public decimal Monto { get; set; }
-
-        [StringLength(1000)]
-        public string? Descripcion { get; set; }
-
-        [Required]
-        [StringLength(20)]
-        public string Tipo { get; set; } = null!;
-
-        public bool? Activo { get; set; }
-    }
-
-    public class TemplateResponseDto
-    {
-        public int TemplateId { get; set; }
-        public int UsuarioId { get; set; }
-        public string Nombre { get; set; } = null!;
-        public int CategoriaId { get; set; }
-        public string? CategoriaNombre { get; set; }
-        public decimal Monto { get; set; }
-        public string? Descripcion { get; set; }
-        public string Tipo { get; set; } = null!;
-        public int FrecuenciaUso { get; set; }
-        public DateTime FechaCreacion { get; set; }
-        public DateTime? FechaUltimoUso { get; set; }
-        public bool Activo { get; set; }
-    }
-
     // DTOs para ConfiguracionesUsuario
     public class ConfiguracionUsuarioCreateDto
     {
@@ -526,6 +310,61 @@ namespace HoneyBack.DTOs
         public string? NombreUsuario { get; set; }
         public string? AvatarUrl { get; set; }
         public bool? EsVeterano { get; set; }
+    }
+
+    // DTOs para EntornosPersonales
+    public class EntornoPersonalCreateDto
+    {
+        [Required(ErrorMessage = "El modulo es requerido")]
+        [StringLength(50)]
+        public string ModuloClave { get; set; } = null!;
+
+        [Required(ErrorMessage = "El titulo es requerido")]
+        [StringLength(200)]
+        public string Titulo { get; set; } = null!;
+
+        [StringLength(300)]
+        public string? Subtitulo { get; set; }
+
+        [StringLength(100)]
+        public string? ValorPrincipal { get; set; }
+
+        [StringLength(50)]
+        public string? Etiqueta { get; set; }
+
+        [Required(ErrorMessage = "Los datos son requeridos")]
+        public string DatosJson { get; set; } = null!;
+    }
+
+    public class EntornoPersonalUpdateDto
+    {
+        [StringLength(200)]
+        public string? Titulo { get; set; }
+
+        [StringLength(300)]
+        public string? Subtitulo { get; set; }
+
+        [StringLength(100)]
+        public string? ValorPrincipal { get; set; }
+
+        [StringLength(50)]
+        public string? Etiqueta { get; set; }
+
+        public string? DatosJson { get; set; }
+    }
+
+    public class EntornoPersonalResponseDto
+    {
+        public int EntornoId { get; set; }
+        public int UsuarioId { get; set; }
+        public string ModuloClave { get; set; } = null!;
+        public string Titulo { get; set; } = null!;
+        public string? Subtitulo { get; set; }
+        public string? ValorPrincipal { get; set; }
+        public string? Etiqueta { get; set; }
+        public string DatosJson { get; set; } = null!;
+        public DateTime FechaCreacion { get; set; }
+        public DateTime FechaActualizacion { get; set; }
     }
 
     // DTO generico para respuestas
