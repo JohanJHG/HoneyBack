@@ -1,0 +1,17 @@
+services:
+  sqlserver:
+    environment:
+      MSSQL_PID: ${MSSQL_PID:-Standard}
+
+  honeyback_api:
+    image: ${HONEYBACK_API_IMAGE}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Swagger__Enabled: false
+      Database__ApplyMigrationsAtStartup: false
+      Cors__AllowedOriginsCsv: ${CORS_ALLOWED_ORIGINS:-https://honeybalance.tu-dominio.com}
+
+  honeybalance_web:
+    image: ${HONEYBALANCE_WEB_IMAGE}
+    ports:
+      - "80:80"

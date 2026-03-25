@@ -65,7 +65,19 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAngularApp", policy =>
     {
         var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-            ?? new[] { "http://localhost:4200", "http://localhost:4201" };
+            ?? Array.Empty<string>();
+        var csvOrigins = builder.Configuration["Cors:AllowedOriginsCsv"];
+
+        if (!string.IsNullOrWhiteSpace(csvOrigins))
+        {
+            allowedOrigins = csvOrigins
+                .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        }
+
+        if (allowedOrigins.Length == 0)
+        {
+            allowedOrigins = new[] { "http://localhost:4200", "http://localhost:4201" };
+        }
         
         policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
@@ -157,14 +169,21 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+var applyMigrationsAtStartup = builder.Configuration.GetValue<bool?>("Database:ApplyMigrationsAtStartup")
+    ?? !app.Environment.IsProduction();
+
+var swaggerEnabled = builder.Configuration.GetValue<bool?>("Swagger:Enabled")
+    ?? !app.Environment.IsProduction();
+
 // ============================================================
 // APLICAR MIGRACIONES AUTOM�TICAMENTE (cr�tico para Docker)
 // ============================================================
-using (var scope = app.Services.CreateScope())
+if (applyMigrationsAtStartup)
 {
+    using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var logger = services.GetRequiredService<ILogger<Program>>();
-    
+
     try
     {
         var context = services.GetRequiredService<HoneyBalanceDbContext>();
@@ -225,18 +244,23 @@ using (var scope = app.Services.CreateScope())
         logger.LogWarning("Continuando en modo desarrollo a pesar del error de migraci�n.");
     }
 }
+else
+{
+    app.Logger.LogInformation("Database:ApplyMigrationsAtStartup=false. Se omite la ejecuci�n de migraciones autom�ticas.");
+}
 
 // Habilitar CORS
 app.UseCors("AllowAngularApp");
 
-// Swagger habilitado en todos los entornos (�til para testing en Docker)
-// En producci�n real, considerar deshabilitar o proteger
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+if (swaggerEnabled)
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "HoneyBack API v1");
-    c.RoutePrefix = "swagger";
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "HoneyBack API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
 
 // Health check endpoint
 app.MapHealthChecks("/health", new HealthCheckOptions
