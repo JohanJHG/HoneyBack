@@ -34,8 +34,8 @@ namespace HoneyBack.Servicios
 
         public async Task<ConfiguracionesUsuario> CrearAsync(ConfiguracionesUsuario configuracion)
         {
-            configuracion.FechaCreacion = DateTime.Now;
-            configuracion.FechaActualizacion = DateTime.Now;
+            configuracion.FechaCreacion = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            configuracion.FechaActualizacion = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             configuracion.NotificacionesEmail ??= true;
             configuracion.NotificacionesPush ??= true;
             configuracion.Tema ??= "dark";
@@ -68,7 +68,7 @@ namespace HoneyBack.Servicios
             configuracionExistente.MonedaPreferida = configuracion.MonedaPreferida ?? configuracionExistente.MonedaPreferida;
             configuracionExistente.NombreUsuario = configuracion.NombreUsuario ?? configuracionExistente.NombreUsuario;
             configuracionExistente.AvatarUrl = configuracion.AvatarUrl ?? configuracionExistente.AvatarUrl;
-            configuracionExistente.FechaActualizacion = DateTime.Now;
+            configuracionExistente.FechaActualizacion = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
             await _context.SaveChangesAsync();
             return configuracionExistente;
@@ -93,7 +93,7 @@ namespace HoneyBack.Servicios
 
             configuracion.PrimeraVez = false;
             configuracion.EsVeterano = true;
-            configuracion.FechaActualizacion = DateTime.Now;
+            configuracion.FechaActualizacion = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             await _context.SaveChangesAsync();
             return true;
         }

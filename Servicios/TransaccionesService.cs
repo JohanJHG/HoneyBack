@@ -66,7 +66,7 @@ namespace HoneyBack.Servicios
 
         public async Task<Transaccione> CrearAsync(Transaccione transaccion)
         {
-            transaccion.FechaCreacion = DateTime.UtcNow;
+            transaccion.FechaCreacion = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             
             // Normalizar tipo a minusculas
             transaccion.Tipo = transaccion.Tipo.ToLower();

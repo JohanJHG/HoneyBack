@@ -28,13 +28,17 @@ namespace HoneyBack.Servicios
 
         public async Task<Usuario?> ObtenerPorEmailAsync(string email)
         {
+            if (string.IsNullOrWhiteSpace(email))
+                return null;
+
+            var normalizedEmail = email.Trim().ToLower();
             return await _context.Usuarios
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Email.ToLower() == normalizedEmail);
         }
 
         public async Task<Usuario> CrearAsync(Usuario usuario)
         {
-            usuario.FechaRegistro = DateTime.Now;
+            usuario.FechaRegistro = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             _context.Usuarios.Add(usuario);
             await _context.SaveChangesAsync();
             return usuario;
@@ -69,7 +73,11 @@ namespace HoneyBack.Servicios
 
         public async Task<bool> ExisteEmailAsync(string email)
         {
-            return await _context.Usuarios.AnyAsync(u => u.Email == email);
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            var normalizedEmail = email.Trim().ToLower();
+            return await _context.Usuarios.AnyAsync(u => u.Email.ToLower() == normalizedEmail);
         }
     }
 }

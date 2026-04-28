@@ -4,6 +4,7 @@ using HoneyBack.Models;
 using HoneyBack.Servicios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -22,8 +23,8 @@ namespace HoneyBack.Controllers
         private readonly HoneyBalanceDbContext _context;
         private readonly ILogger<AuthController> _logger;
 
-        // Duraci?n del token de recuperaci?n en minutos
         private const int TokenExpirationMinutes = 15;
+        private static readonly string SpecialChars = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
 
         public AuthController(
             IUsuariosService usuariosService,
@@ -41,82 +42,94 @@ namespace HoneyBack.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Login de usuario con email y contrase?a
-        /// </summary>
         [HttpPost("login")]
+        [EnableRateLimiting("auth")]
         public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
         {
-            // Validar entrada
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-            {
-                return BadRequest(new { message = "Email y contrase?a son requeridos" });
-            }
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-            // Buscar usuario por email
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+                return BadRequest(new { message = "Email y contraseña son requeridos" });
+
             var usuario = await _usuariosService.ObtenerPorEmailAsync(request.Email);
             if (usuario == null)
             {
-                return Unauthorized(new { message = "Credenciales inv?lidas" });
+                _logger.LogWarning("Login fallido: email no encontrado ip={IP}", ip);
+                return Unauthorized(new { message = "Credenciales inválidas" });
             }
 
-            // Verificar si la contrase?a est? hasheada con BCrypt o es texto plano
             bool passwordValida = false;
             bool requiereMigracion = false;
 
             try
             {
-                // Intentar validar con BCrypt (contrase?as hasheadas)
                 if (usuario.PasswordHash.StartsWith("$2"))
                 {
                     passwordValida = BCrypt.Net.BCrypt.Verify(request.Password, usuario.PasswordHash);
                 }
                 else
                 {
-                    // Contrase?a en texto plano (legacy)
                     passwordValida = usuario.PasswordHash == request.Password;
                     requiereMigracion = true;
                 }
             }
             catch (BCrypt.Net.SaltParseException)
             {
-                // Si falla la verificaci?n BCrypt, comparar como texto plano
                 passwordValida = usuario.PasswordHash == request.Password;
                 requiereMigracion = true;
             }
 
             if (!passwordValida)
             {
-                return Unauthorized(new { message = "Credenciales inv?lidas" });
+                _logger.LogWarning("Login fallido: contraseña inválida usuarioId={UserId} ip={IP}", usuario.UsuarioId, ip);
+                return Unauthorized(new { message = "Credenciales inválidas" });
             }
 
-            // Si la contrase?a requiere migraci?n, actualizarla a BCrypt
             if (requiereMigracion)
             {
                 usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
                 await _usuariosService.ActualizarAsync(usuario.UsuarioId, usuario);
             }
 
-            // Generar JWT token
             var (token, expiresAt) = _jwtTokenService.Generate(usuario);
 
-            // Crear sesi?n en la base de datos
             var sesion = new Sesione
             {
                 UsuarioId = usuario.UsuarioId,
                 TokenSesion = token,
-                FechaExpiracion = expiresAt
+                FechaExpiracion = DateTime.SpecifyKind(expiresAt, DateTimeKind.Unspecified),
+                Ipaddress = ip
             };
             await _sesionesService.CrearAsync(sesion);
-
-            // Limpiar sesiones expiradas (opcional, para mantener la BD limpia)
             await _sesionesService.LimpiarSesionesExpiradasAsync();
 
-            // Devolver respuesta con token y datos del usuario
-            var response = new LoginResponseDto
+            // Emitir refresh token en HttpOnly cookie (no accesible desde JS)
+            var refreshTokenValue = GenerarRefreshToken();
+            _context.RefreshTokens.Add(new HoneyBack.Models.RefreshToken
+            {
+                UsuarioId = usuario.UsuarioId,
+                Token = refreshTokenValue,
+                ExpiresAt = DateTime.SpecifyKind(DateTime.UtcNow.AddDays(7), DateTimeKind.Unspecified),
+                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                IsRevoked = false
+            });
+            await _context.SaveChangesAsync();
+
+            Response.Cookies.Append("refresh_token", refreshTokenValue, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
+
+            _logger.LogInformation("Login exitoso: usuarioId={UserId} ip={IP}", usuario.UsuarioId, ip);
+
+            return Ok(new LoginResponseDto
             {
                 Token = token,
-                ExpiresAt = expiresAt.ToString("o"), // ISO 8601 format
+                ExpiresAt = expiresAt.ToString("o"),
+                RefreshToken = refreshTokenValue,
                 Usuario = new UsuarioDto
                 {
                     UsuarioId = usuario.UsuarioId,
@@ -124,18 +137,15 @@ namespace HoneyBack.Controllers
                     Email = usuario.Email,
                     FechaRegistro = usuario.FechaRegistro
                 }
-            };
-
-            return Ok(response);
+            });
         }
 
-        /// <summary>
-        /// Registro de nuevo usuario
-        /// </summary>
         [HttpPost("register")]
+        [EnableRateLimiting("auth")]
         public async Task<ActionResult<RegisterResponseDto>> Register([FromBody] RegisterRequestDto request)
         {
-            // Validar entrada
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
             if (string.IsNullOrWhiteSpace(request.NombreCompleto) ||
                 string.IsNullOrWhiteSpace(request.Email) ||
                 string.IsNullOrWhiteSpace(request.Password))
@@ -143,28 +153,17 @@ namespace HoneyBack.Controllers
                 return BadRequest(new { message = "Todos los campos son requeridos" });
             }
 
-            // Validar formato de email
             if (!IsValidEmail(request.Email))
-            {
-                return BadRequest(new { message = "El formato del email no es v?lido" });
-            }
+                return BadRequest(new { message = "El formato del email no es válido" });
 
-            // Verificar si el email ya existe
             if (await _usuariosService.ExisteEmailAsync(request.Email))
-            {
-                return Conflict(new { message = "El email ya est? registrado" });
-            }
+                return Conflict(new { message = "El email ya está registrado" });
 
-            // Validar longitud m?nima de contrase?a
-            if (request.Password.Length < 6)
-            {
-                return BadRequest(new { message = "La contrase?a debe tener al menos 6 caracteres" });
-            }
+            if (!EsPasswordSeguro(request.Password, out var razon))
+                return BadRequest(new { message = razon });
 
-            // Hashear contrase?a con BCrypt
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            // Crear usuario
             var nuevoUsuario = new Usuario
             {
                 NombreCompleto = request.NombreCompleto,
@@ -174,275 +173,258 @@ namespace HoneyBack.Controllers
             };
 
             var usuarioCreado = await _usuariosService.CrearAsync(nuevoUsuario);
+            _logger.LogInformation("Registro exitoso: usuarioId={UserId} ip={IP}", usuarioCreado.UsuarioId, ip);
 
-            // Devolver respuesta sin contrase?a
-            var response = new RegisterResponseDto
+            return CreatedAtAction(nameof(Register), new { id = usuarioCreado.UsuarioId }, new RegisterResponseDto
             {
                 UsuarioId = usuarioCreado.UsuarioId,
                 NombreCompleto = usuarioCreado.NombreCompleto,
                 Email = usuarioCreado.Email,
                 FechaRegistro = usuarioCreado.FechaRegistro
-            };
-
-            return CreatedAtAction(nameof(Register), new { id = usuarioCreado.UsuarioId }, response);
+            });
         }
 
-        /// <summary>
-        /// Obtener informaci?n del usuario autenticado actual
-        /// </summary>
         [HttpGet("me")]
         [Authorize]
         public async Task<ActionResult<UsuarioDto>> GetCurrentUser()
         {
-            // Obtener el ID del usuario desde los claims del JWT usando extensi�n consistente
             var userId = User.GetUserId();
             if (!userId.HasValue)
-            {
-                return Unauthorized(new { message = "Token inv?lido" });
-            }
+                return Unauthorized(new { message = "Token inválido" });
 
-            // Buscar el usuario en la base de datos
             var usuario = await _usuariosService.ObtenerPorIdAsync(userId.Value);
-
             if (usuario == null)
-            {
                 return NotFound(new { message = "Usuario no encontrado" });
-            }
 
-            // Devolver datos del usuario sin la contrase?a
-            var response = new UsuarioDto
+            return Ok(new UsuarioDto
             {
                 UsuarioId = usuario.UsuarioId,
                 NombreCompleto = usuario.NombreCompleto,
                 Email = usuario.Email,
                 FechaRegistro = usuario.FechaRegistro
-            };
-
-            return Ok(response);
+            });
         }
 
-        /// <summary>
-        /// Cambiar contrase?a del usuario autenticado
-        /// </summary>
         [HttpPost("cambiar-password")]
         [Authorize]
         public async Task<ActionResult> CambiarPassword([FromBody] CambiarPasswordDto request)
         {
-            // Obtener el ID del usuario desde los claims del JWT usando extensi�n consistente
             var userId = User.GetUserId();
             if (!userId.HasValue)
-            {
-                return Unauthorized(new { message = "Token inv?lido" });
-            }
+                return Unauthorized(new { message = "Token inválido" });
 
-            // Validar entrada
             if (string.IsNullOrWhiteSpace(request.PasswordActual) || string.IsNullOrWhiteSpace(request.PasswordNueva))
-            {
-                return BadRequest(new { message = "Contrase?a actual y nueva son requeridas" });
-            }
+                return BadRequest(new { message = "Contraseña actual y nueva son requeridas" });
 
-            // Validar longitud m?nima de contrase?a nueva
-            if (request.PasswordNueva.Length < 6)
-            {
-                return BadRequest(new { message = "La contrase?a nueva debe tener al menos 6 caracteres" });
-            }
+            if (!EsPasswordSeguro(request.PasswordNueva, out var razon))
+                return BadRequest(new { message = razon });
 
-            // Buscar el usuario
             var usuario = await _usuariosService.ObtenerPorIdAsync(userId.Value);
             if (usuario == null)
-            {
                 return NotFound(new { message = "Usuario no encontrado" });
-            }
 
-            // Verificar que la contrase?a actual es correcta
-            bool passwordValida = BCrypt.Net.BCrypt.Verify(request.PasswordActual, usuario.PasswordHash);
-            if (!passwordValida)
-            {
-                return BadRequest(new { message = "La contrase?a actual es incorrecta" });
-            }
+            if (!BCrypt.Net.BCrypt.Verify(request.PasswordActual, usuario.PasswordHash))
+                return BadRequest(new { message = "La contraseña actual es incorrecta" });
 
-            // Hashear la nueva contrase?a
             usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.PasswordNueva);
-
-            // Actualizar el usuario
             await _usuariosService.ActualizarAsync(userId.Value, usuario);
 
-            return Ok(new { message = "Contrase?a actualizada exitosamente" });
+            _logger.LogInformation("Contraseña cambiada: usuarioId={UserId}", userId.Value);
+            return Ok(new { message = "Contraseña actualizada exitosamente" });
         }
 
-        /// <summary>
-        /// Cerrar sesi?n (invalidar token actual)
-        /// </summary>
         [HttpPost("logout")]
         [Authorize]
         public async Task<ActionResult> Logout()
         {
-            // Obtener el token del header
+            var userId = User.GetUserId();
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
             var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
             if (string.IsNullOrEmpty(token))
-            {
                 return BadRequest(new { message = "Token no proporcionado" });
-            }
 
-            // Buscar y eliminar la sesi?n
             var sesion = await _sesionesService.ObtenerPorTokenAsync(token);
             if (sesion != null)
-            {
                 await _sesionesService.EliminarAsync(sesion.SesionId);
-            }
 
-            return Ok(new { message = "Sesi?n cerrada exitosamente" });
+            _logger.LogInformation("Logout: usuarioId={UserId} ip={IP}", userId, ip);
+            return Ok(new { message = "Sesión cerrada exitosamente" });
         }
 
-        /// <summary>
-        /// Solicita un c?digo de recuperaci?n de contrase?a.
-        /// Siempre devuelve respuesta gen?rica para evitar enumeraci?n de emails.
-        /// </summary>
+        [HttpPost("refresh")]
+        [AllowAnonymous]
+        [EnableRateLimiting("auth")]
+        public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto? request)
+        {
+            // Acepta refresh token desde cookie HttpOnly (prod) o desde body (dev)
+            var tokenValue = Request.Cookies["refresh_token"] ?? request?.RefreshToken;
+            if (string.IsNullOrWhiteSpace(tokenValue))
+                return Unauthorized(new { mensaje = "Refresh token no proporcionado." });
+
+            var stored = await _context.RefreshTokens
+                .Include(r => r.Usuario)
+                .FirstOrDefaultAsync(r => r.Token == tokenValue && !r.IsRevoked);
+
+            if (stored == null || stored.ExpiresAt < DateTime.UtcNow)
+                return Unauthorized(new { mensaje = "Refresh token inválido o expirado." });
+
+            var nuevoRefreshToken = GenerarRefreshToken();
+            stored.IsRevoked = true;
+            stored.ReplacedByToken = nuevoRefreshToken;
+
+            var nuevoAccessToken = _jwtTokenService.Generate(stored.Usuario);
+
+            _context.RefreshTokens.Add(new HoneyBack.Models.RefreshToken
+            {
+                UsuarioId = stored.UsuarioId,
+                Token = nuevoRefreshToken,
+                ExpiresAt = DateTime.SpecifyKind(DateTime.UtcNow.AddDays(7), DateTimeKind.Unspecified),
+                CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                IsRevoked = false
+            });
+
+            await _context.SaveChangesAsync();
+
+            // Refresh token en HttpOnly cookie; access token en body
+            Response.Cookies.Append("refresh_token", nuevoRefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTimeOffset.UtcNow.AddDays(7)
+            });
+
+            return Ok(new
+            {
+                accessToken = nuevoAccessToken.token,
+                expiresAt = nuevoAccessToken.expiresAt.ToString("o"),
+                refreshToken = nuevoRefreshToken
+            });
+        }
+
         [HttpPost("forgot-password")]
         [AllowAnonymous]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
-            // Respuesta gen?rica por seguridad (no revela si el email existe)
-            var genericResponse = new { mensaje = "Si el email esta registrado, recibiras un codigo de recuperacion en tu correo." };
+            var genericResponse = new { mensaje = "Si el email está registrado, recibirás un código de recuperación en tu correo." };
 
-            try
+            var usuario = await _usuariosService.ObtenerPorEmailAsync(request.Email.ToLower().Trim());
+            if (usuario == null)
             {
-                // Buscar usuario por email (case-insensitive)
-                var usuario = await _usuariosService.ObtenerPorEmailAsync(request.Email.ToLower().Trim());
-
-                // Si no existe, retornar respuesta gen?rica (seguridad: no revelar si email existe)
-                if (usuario == null)
-                {
-                    _logger.LogInformation("Intento de recuperacion para email no registrado: {Email}", request.Email);
-                    return Ok(genericResponse);
-                }
-
-                // Invalidar tokens anteriores no usados del usuario
-                var tokensAnteriores = await _context.PasswordResetTokens
-                    .Where(t => t.UsuarioId == usuario.UsuarioId && !t.Used)
-                    .ToListAsync();
-
-                foreach (var tokenAnterior in tokensAnteriores)
-                {
-                    tokenAnterior.Used = true;
-                }
-
-                // Generar c?digo de 6 d?gitos criptogr?ficamente seguro
-                var token = GenerateSecureToken();
-
-                // Crear registro de token
-                var resetToken = new PasswordResetToken
-                {
-                    UsuarioId = usuario.UsuarioId,
-                    Token = token,
-                    CreatedAtUtc = DateTime.UtcNow,
-                    ExpiresAtUtc = DateTime.UtcNow.AddMinutes(TokenExpirationMinutes),
-                    Used = false
-                };
-
-                _context.PasswordResetTokens.Add(resetToken);
-                await _context.SaveChangesAsync();
-
-                // Enviar email con el c?digo
-                var emailSent = await _emailService.SendPasswordResetEmailAsync(
-                    usuario.Email,
-                    usuario.NombreCompleto ?? usuario.Email,
-                    token
-                );
-
-                if (!emailSent)
-                {
-                    _logger.LogWarning("No se pudo enviar email de recuperacion a {Email}", usuario.Email);
-                }
-
-                _logger.LogInformation(
-                    "Codigo de recuperacion generado para UsuarioId: {UserId}. Email enviado: {EmailSent}",
-                    usuario.UsuarioId, emailSent);
-
+                _logger.LogInformation("Recuperación solicitada para email no registrado");
                 return Ok(genericResponse);
             }
-            catch (Exception ex)
+
+            var tokensAnteriores = await _context.PasswordResetTokens
+                .Where(t => t.UsuarioId == usuario.UsuarioId && !t.Used)
+                .ToListAsync();
+
+            foreach (var tokenAnterior in tokensAnteriores)
+                tokenAnterior.Used = true;
+
+            var token = GenerateSecureToken();
+            var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+
+            _context.PasswordResetTokens.Add(new PasswordResetToken
             {
-                _logger.LogError(ex, "Error en ForgotPassword para {Email}", request.Email);
-                return StatusCode(500, new { mensaje = "Error interno del servidor" });
-            }
+                UsuarioId = usuario.UsuarioId,
+                Token = token,
+                CreatedAtUtc = now,
+                ExpiresAtUtc = now.AddMinutes(TokenExpirationMinutes),
+                Used = false
+            });
+            await _context.SaveChangesAsync();
+
+            var emailSent = await _emailService.SendPasswordResetEmailAsync(
+                usuario.Email,
+                usuario.NombreCompleto ?? usuario.Email,
+                token);
+
+            _logger.LogInformation("Código de recuperación generado: usuarioId={UserId} emailEnviado={Sent}", usuario.UsuarioId, emailSent);
+            return Ok(genericResponse);
         }
 
-        /// <summary>
-        /// Restablece la contrase?a usando el c?digo de verificaci?n.
-        /// </summary>
         [HttpPost("reset-password")]
         [AllowAnonymous]
+        [EnableRateLimiting("auth")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
         {
-            try
+            if (!EsPasswordSeguro(request.NewPassword, out var razon))
+                return BadRequest(new { mensaje = razon });
+
+            var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            var resetToken = await _context.PasswordResetTokens
+                .Include(t => t.Usuario)
+                .FirstOrDefaultAsync(t =>
+                    t.Token == request.Token &&
+                    !t.Used &&
+                    t.ExpiresAtUtc > now);
+
+            if (resetToken == null)
             {
-                // Buscar token v?lido (no usado y no expirado)
-                var resetToken = await _context.PasswordResetTokens
-                    .Include(t => t.Usuario)
-                    .FirstOrDefaultAsync(t =>
-                        t.Token == request.Token &&
-                        !t.Used &&
-                        t.ExpiresAtUtc > DateTime.UtcNow);
-
-                // Validar token
-                if (resetToken == null)
-                {
-                    _logger.LogWarning("Intento de reset con token invalido o expirado: {Token}", request.Token);
-                    return BadRequest(new { mensaje = "El codigo es invalido o ha expirado. Solicita uno nuevo." });
-                }
-
-                // Validar que el usuario existe
-                if (resetToken.Usuario == null)
-                {
-                    _logger.LogWarning("Token {Token} asociado a usuario inexistente", request.Token);
-                    return BadRequest(new { mensaje = "Usuario no encontrado" });
-                }
-
-                // Hash de la nueva contrase?a con BCrypt (work factor 12)
-                var hashedPassword = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
-
-                // Actualizar contrase?a del usuario
-                resetToken.Usuario.PasswordHash = hashedPassword;
-                resetToken.Usuario.FechaUltimaActualizacion = DateTime.UtcNow;
-
-                // Marcar token como usado
-                resetToken.Used = true;
-
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation(
-                    "Contrasena restablecida exitosamente para UsuarioId: {UserId}",
-                    resetToken.UsuarioId);
-
-                return Ok(new { mensaje = "Contrasena restablecida exitosamente. Ya puedes iniciar sesion." });
+                _logger.LogWarning("Intento de reset con token inválido o expirado");
+                return BadRequest(new { mensaje = "El código es inválido o ha expirado. Solicita uno nuevo." });
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error en ResetPassword");
-                return StatusCode(500, new { mensaje = "Error interno del servidor" });
-            }
+
+            if (resetToken.Usuario == null)
+                return BadRequest(new { mensaje = "Usuario no encontrado" });
+
+            resetToken.Usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
+            resetToken.Usuario.FechaUltimaActualizacion = now;
+            resetToken.Used = true;
+
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Contraseña restablecida: usuarioId={UserId}", resetToken.UsuarioId);
+            return Ok(new { mensaje = "Contraseña restablecida exitosamente. Ya puedes iniciar sesión." });
         }
 
-        /// <summary>
-        /// Genera un c?digo num?rico de 6 d?gitos usando un generador criptogr?ficamente seguro.
-        /// </summary>
+        private static bool EsPasswordSeguro(string password, out string mensaje)
+        {
+            if (password.Length < 8)
+            {
+                mensaje = "La contraseña debe tener al menos 8 caracteres";
+                return false;
+            }
+            if (!password.Any(char.IsUpper))
+            {
+                mensaje = "La contraseña debe contener al menos una letra mayúscula";
+                return false;
+            }
+            if (!password.Any(char.IsDigit))
+            {
+                mensaje = "La contraseña debe contener al menos un número";
+                return false;
+            }
+            if (!password.Any(c => SpecialChars.Contains(c)))
+            {
+                mensaje = "La contraseña debe contener al menos un carácter especial (!@#$%^&*...)";
+                return false;
+            }
+            mensaje = string.Empty;
+            return true;
+        }
+
         private static string GenerateSecureToken()
         {
-            // Usar RandomNumberGenerator para seguridad criptogr?fica
             var bytes = new byte[4];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(bytes);
-            }
-
-            // Convertir a n?mero positivo y tomar m?dulo para 6 d?gitos
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(bytes);
             var number = Math.Abs(BitConverter.ToInt32(bytes, 0)) % 900000 + 100000;
             return number.ToString();
         }
 
-        private bool IsValidEmail(string email)
+        private static string GenerarRefreshToken()
+        {
+            var bytes = new byte[64];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(bytes);
+            return Convert.ToBase64String(bytes);
+        }
+
+        private static bool IsValidEmail(string email)
         {
             try
             {

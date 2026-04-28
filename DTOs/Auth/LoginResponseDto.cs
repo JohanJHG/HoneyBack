@@ -4,6 +4,7 @@ namespace HoneyBack.DTOs.Auth
     {
         public string Token { get; set; } = null!;
         public string ExpiresAt { get; set; } = null!; // ISO 8601
+        public string RefreshToken { get; set; } = null!;
         public UsuarioDto Usuario { get; set; } = null!;
     }
 

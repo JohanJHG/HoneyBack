@@ -26,7 +26,7 @@ namespace HoneyBack.Servicios
 
         public async Task<MensajesContacto> CrearAsync(MensajesContacto mensaje)
         {
-            mensaje.FechaEnvio = DateTime.Now;
+            mensaje.FechaEnvio = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             _context.MensajesContactos.Add(mensaje);
             await _context.SaveChangesAsync();
             return mensaje;

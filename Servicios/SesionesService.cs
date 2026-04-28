@@ -73,14 +73,16 @@ namespace HoneyBack.Servicios
 
         public async Task<bool> ValidarTokenAsync(string token)
         {
+            var ahora = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             var sesion = await ObtenerPorTokenAsync(token);
-            return sesion != null && sesion.FechaExpiracion > DateTime.Now;
+            return sesion != null && sesion.FechaExpiracion > ahora;
         }
 
         public async Task LimpiarSesionesExpiradasAsync()
         {
+            var ahora = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             var sesionesExpiradas = await _context.Sesiones
-                .Where(s => s.FechaExpiracion < DateTime.Now)
+                .Where(s => s.FechaExpiracion < ahora)
                 .ToListAsync();
 
             _context.Sesiones.RemoveRange(sesionesExpiradas);

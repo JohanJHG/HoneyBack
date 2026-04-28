@@ -31,6 +31,8 @@ public partial class HoneyBalanceDbContext : DbContext
 
     public virtual DbSet<EntornoPersonal> EntornosPersonales { get; set; }
 
+    public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // NOTA: En runtime, la conexión se configura en Program.cs vía AddDbContext
@@ -56,8 +58,8 @@ public partial class HoneyBalanceDbContext : DbContext
 
             entity.Property(e => e.ConfiguracionId).HasColumnName("ConfiguracionID");
             entity.Property(e => e.FechaActualizacion)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
             entity.Property(e => e.FormatoFecha)
                 .HasMaxLength(20)
                 .HasDefaultValue("DD/MM/YYYY");
@@ -85,8 +87,8 @@ public partial class HoneyBalanceDbContext : DbContext
             entity.Property(e => e.EsVeterano)
                 .HasDefaultValue(false);
             entity.Property(e => e.FechaCreacion)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
 
             entity.HasOne(d => d.Usuario).WithOne(p => p.ConfiguracionesUsuario)
                 .HasForeignKey<ConfiguracionesUsuario>(d => d.UsuarioId)
@@ -103,10 +105,10 @@ public partial class HoneyBalanceDbContext : DbContext
             entity.Property(e => e.Asunto).HasMaxLength(300);
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.FechaEnvio)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.FechaLeido).HasColumnType("datetime");
-            entity.Property(e => e.FechaRespuesta).HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.FechaLeido).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.FechaRespuesta).HasColumnType("timestamp without time zone");
             entity.Property(e => e.Leido).HasDefaultValue(false);
             entity.Property(e => e.Nombre).HasMaxLength(255);
             entity.Property(e => e.UsuarioId).HasColumnName("UsuarioID");
@@ -138,8 +140,8 @@ public partial class HoneyBalanceDbContext : DbContext
                 .HasMaxLength(7)
                 .HasDefaultValue("#FFD8A9");
             entity.Property(e => e.Completada).HasDefaultValue(false);
-            entity.Property(e => e.FechaCompletada).HasColumnType("datetime");
-            entity.Property(e => e.FechaInicio).HasDefaultValueSql("(CONVERT([date],getdate()))");
+            entity.Property(e => e.FechaCompletada).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.FechaInicio).HasDefaultValueSql("CURRENT_DATE");
             entity.Property(e => e.Icono).HasMaxLength(50);
             entity.Property(e => e.MontoActual)
                 .HasDefaultValue(0m)
@@ -163,9 +165,9 @@ public partial class HoneyBalanceDbContext : DbContext
             entity.Property(e => e.SesionId).HasColumnName("SesionID");
             entity.Property(e => e.Activa).HasDefaultValue(true);
             entity.Property(e => e.FechaCreacion)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.FechaExpiracion).HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.FechaExpiracion).HasColumnType("timestamp without time zone");
             entity.Property(e => e.Ipaddress)
                 .HasMaxLength(45)
                 .HasColumnName("IPAddress");
@@ -198,8 +200,8 @@ public partial class HoneyBalanceDbContext : DbContext
             entity.Property(e => e.Tipo).HasMaxLength(20);
             entity.Property(e => e.Categoria).HasMaxLength(50);
             entity.Property(e => e.FechaCreacion)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
 
             entity.HasOne(d => d.Usuario).WithMany(p => p.Transacciones)
                 .HasForeignKey(d => d.UsuarioId)
@@ -220,11 +222,11 @@ public partial class HoneyBalanceDbContext : DbContext
                 .HasColumnName("AvatarURL");
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.FechaRegistro)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
             entity.Property(e => e.FechaUltimaActualizacion)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
             entity.Property(e => e.NombreCompleto).HasMaxLength(255);
             entity.Property(e => e.PasswordHash).HasMaxLength(255);
             entity.Property(e => e.PreferenciasMoneda)
@@ -249,9 +251,9 @@ public partial class HoneyBalanceDbContext : DbContext
                 .HasMaxLength(6)
                 .IsFixedLength();
             entity.Property(e => e.CreatedAtUtc)
-                .HasColumnType("datetime2");
+                .HasColumnType("timestamp without time zone");
             entity.Property(e => e.ExpiresAtUtc)
-                .HasColumnType("datetime2");
+                .HasColumnType("timestamp without time zone");
             entity.Property(e => e.Used)
                 .HasDefaultValue(false);
 
@@ -277,13 +279,13 @@ public partial class HoneyBalanceDbContext : DbContext
             entity.Property(e => e.Subtitulo).HasMaxLength(300);
             entity.Property(e => e.ValorPrincipal).HasMaxLength(100);
             entity.Property(e => e.Etiqueta).HasMaxLength(50);
-            entity.Property(e => e.DatosJson).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.DatosJson).HasColumnType("text");
             entity.Property(e => e.FechaCreacion)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
             entity.Property(e => e.FechaActualizacion)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
 
             entity.HasOne(d => d.Usuario).WithMany(p => p.EntornosPersonales)
                 .HasForeignKey(d => d.UsuarioId)
@@ -291,8 +293,70 @@ public partial class HoneyBalanceDbContext : DbContext
                 .HasConstraintName("FK_EntornosPersonales_Usuarios");
         });
 
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.ToTable("RefreshTokens");
+
+            entity.HasIndex(e => e.Token, "IDX_RefreshTokens_Token").IsUnique();
+            entity.HasIndex(e => new { e.UsuarioId, e.IsRevoked, e.ExpiresAt }, "IDX_RefreshTokens_Active");
+
+            entity.Property(e => e.Token).HasMaxLength(512);
+            entity.Property(e => e.ReplacedByToken).HasMaxLength(512);
+            entity.Property(e => e.ExpiresAt).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.IsRevoked).HasDefaultValue(false);
+
+            entity.HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_RefreshTokens_Usuarios");
+        });
+
         OnModelCreatingPartial(modelBuilder);
     }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        NormalizeDateTimeKindsForPostgreSql();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        NormalizeDateTimeKindsForPostgreSql();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    private void NormalizeDateTimeKindsForPostgreSql()
+    {
+        foreach (var entry in ChangeTracker.Entries().Where(e =>
+                     e.State == EntityState.Added || e.State == EntityState.Modified))
+        {
+            foreach (var property in entry.Properties)
+            {
+                if (property.Metadata.ClrType == typeof(DateTime) &&
+                    property.CurrentValue is DateTime dateTimeValue &&
+                    dateTimeValue.Kind != DateTimeKind.Unspecified)
+                {
+                    property.CurrentValue = DateTime.SpecifyKind(dateTimeValue, DateTimeKind.Unspecified);
+                    continue;
+                }
+
+                if (property.Metadata.ClrType == typeof(DateTime?) &&
+                    property.CurrentValue is DateTime nullableDateTimeValue &&
+                    nullableDateTimeValue.Kind != DateTimeKind.Unspecified)
+                {
+                    property.CurrentValue = DateTime.SpecifyKind(nullableDateTimeValue, DateTimeKind.Unspecified);
+                }
+            }
+        }
+    }
 }

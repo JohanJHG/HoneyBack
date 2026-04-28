@@ -3,17 +3,17 @@ using System;
 using HoneyBack.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace HoneyBack.Migrations
 {
     [DbContext(typeof(HoneyBalanceDbContext))]
-    [Migration("20260216192143_InitialCreateComplete")]
-    partial class InitialCreateComplete
+    [Migration("20260427114731_AddRefreshTokens")]
+    partial class AddRefreshTokens
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,150 +21,93 @@ namespace HoneyBack.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.11")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("HoneyBack.Models.CategoriasTransaccione", b =>
-                {
-                    b.Property<int>("CategoriaId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("CategoriaID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoriaId"));
-
-                    b.Property<bool?>("Activa")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Color")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(7)
-                        .HasColumnType("nvarchar(7)")
-                        .HasDefaultValue("#FFD8A9");
-
-                    b.Property<bool?>("EsSistema")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<string>("Icono")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int?>("UsuarioId")
-                        .HasColumnType("int")
-                        .HasColumnName("UsuarioID");
-
-                    b.HasKey("CategoriaId")
-                        .HasName("PK__Categori__F353C1C548B5BF7B");
-
-                    b.HasIndex(new[] { "Tipo" }, "IDX_Categorias_Tipo");
-
-                    b.HasIndex(new[] { "UsuarioId" }, "IDX_Categorias_Usuario");
-
-                    b.HasIndex(new[] { "Nombre", "UsuarioId", "Tipo" }, "UQ_Categoria_Usuario")
-                        .IsUnique()
-                        .HasFilter("[UsuarioID] IS NOT NULL");
-
-                    b.ToTable("CategoriasTransacciones");
-                });
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("HoneyBack.Models.ConfiguracionesUsuario", b =>
                 {
                     b.Property<int>("ConfiguracionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("ConfiguracionID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ConfiguracionId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ConfiguracionId"));
 
                     b.Property<string>("AvatarUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("AvatarURL");
 
                     b.Property<string>("ConfiguracionPersonalizada")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool?>("EsVeterano")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<DateTime?>("FechaActualizacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTime?>("FechaCreacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("FormatoFecha")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasDefaultValue("DD/MM/YYYY");
 
                     b.Property<string>("Idioma")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)")
+                        .HasColumnType("character varying(10)")
                         .HasDefaultValue("es");
 
                     b.Property<string>("MonedaPreferida")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)")
+                        .HasColumnType("character varying(3)")
                         .HasDefaultValue("COP");
 
                     b.Property<string>("NombreUsuario")
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool?>("NotificacionesEmail")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<bool?>("NotificacionesPush")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<bool?>("PrimeraVez")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<string>("Tema")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
+                        .HasColumnType("character varying(20)")
                         .HasDefaultValue("dark");
 
                     b.Property<string>("Timezone")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasDefaultValue("America/Bogota");
 
                     b.Property<int>("UsuarioId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("UsuarioID");
 
                     b.HasKey("ConfiguracionId")
@@ -178,119 +121,111 @@ namespace HoneyBack.Migrations
                     b.ToTable("ConfiguracionesUsuario", (string)null);
                 });
 
-            modelBuilder.Entity("HoneyBack.Models.EstadisticasMensuale", b =>
+            modelBuilder.Entity("HoneyBack.Models.EntornoPersonal", b =>
                 {
-                    b.Property<int>("EstadisticaId")
+                    b.Property<int>("EntornoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("EstadisticaID");
+                        .HasColumnType("integer")
+                        .HasColumnName("EntornoID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EstadisticaId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("EntornoId"));
 
-                    b.Property<int>("Anio")
-                        .HasColumnType("int");
+                    b.Property<string>("DatosJson")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<decimal?>("Balance")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("decimal(16, 2)")
-                        .HasComputedColumnSql("([TotalIngresos]-[TotalGastos])", true);
+                    b.Property<string>("Etiqueta")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
-                    b.Property<int?>("CategoriaMayorGastoId")
-                        .HasColumnType("int")
-                        .HasColumnName("CategoriaMayorGastoID");
-
-                    b.Property<DateTime?>("FechaCalculo")
+                    b.Property<DateTime>("FechaActualizacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
-                    b.Property<int>("Mes")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("MontoMayorGasto")
-                        .HasColumnType("decimal(15, 2)");
-
-                    b.Property<int?>("NumTransacciones")
+                    b.Property<DateTime>("FechaCreacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
-                    b.Property<decimal?>("TotalGastos")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(15, 2)")
-                        .HasDefaultValue(0m);
+                    b.Property<string>("ModuloClave")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
-                    b.Property<decimal?>("TotalIngresos")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(15, 2)")
-                        .HasDefaultValue(0m);
+                    b.Property<string>("Subtitulo")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Titulo")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("UsuarioId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("UsuarioID");
 
-                    b.HasKey("EstadisticaId")
-                        .HasName("PK__Estadist__5E78B5EC289011CE");
+                    b.Property<string>("ValorPrincipal")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
-                    b.HasIndex("CategoriaMayorGastoId");
+                    b.HasKey("EntornoId")
+                        .HasName("PK_EntornosPersonales");
 
-                    b.HasIndex(new[] { "UsuarioId", "Anio", "Mes" }, "IDX_Estadisticas_Usuario_Periodo")
-                        .IsDescending(false, true, true);
+                    b.HasIndex(new[] { "UsuarioId", "ModuloClave" }, "IDX_Entornos_Usuario_Modulo");
 
-                    b.HasIndex(new[] { "UsuarioId", "Anio", "Mes" }, "UQ_Periodo_Usuario")
-                        .IsUnique();
-
-                    b.ToTable("EstadisticasMensuales");
+                    b.ToTable("EntornosPersonales", (string)null);
                 });
 
             modelBuilder.Entity("HoneyBack.Models.MensajesContacto", b =>
                 {
                     b.Property<int>("ContactoId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("ContactoID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ContactoId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ContactoId"));
 
                     b.Property<string>("Asunto")
                         .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                        .HasColumnType("character varying(300)");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTime>("FechaEnvio")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTime?>("FechaLeido")
-                        .HasColumnType("datetime");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("FechaRespuesta")
-                        .HasColumnType("datetime");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<bool?>("Leido")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<string>("Mensaje")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("Respuesta")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<int?>("UsuarioId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("UsuarioID");
 
                     b.HasKey("ContactoId")
@@ -305,51 +240,51 @@ namespace HoneyBack.Migrations
                 {
                     b.Property<int>("MetaId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("MetaID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MetaId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MetaId"));
 
                     b.Property<bool?>("Activa")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<string>("Categoria")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
+                        .HasColumnType("character varying(50)")
                         .HasDefaultValue("otro");
 
                     b.Property<string>("Color")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(7)
-                        .HasColumnType("nvarchar(7)")
+                        .HasColumnType("character varying(7)")
                         .HasDefaultValue("#FFD8A9");
 
                     b.Property<bool?>("Completada")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("FechaCompletada")
-                        .HasColumnType("datetime");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateOnly>("FechaInicio")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("date")
-                        .HasDefaultValueSql("(CONVERT([date],getdate()))");
+                        .HasDefaultValueSql("CURRENT_DATE");
 
                     b.Property<DateOnly?>("FechaObjetivo")
                         .HasColumnType("date");
 
                     b.Property<string>("Icono")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<decimal?>("MontoActual")
                         .ValueGeneratedOnAdd()
@@ -362,15 +297,15 @@ namespace HoneyBack.Migrations
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int?>("Prioridad")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.Property<int>("UsuarioId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("UsuarioID");
 
                     b.HasKey("MetaId")
@@ -390,30 +325,30 @@ namespace HoneyBack.Migrations
                 {
                     b.Property<int>("TokenId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("TokenID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TokenId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TokenId"));
 
                     b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime>("ExpiresAtUtc")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(6)
-                        .HasColumnType("nchar(6)")
+                        .HasColumnType("character(6)")
                         .IsFixedLength();
 
                     b.Property<bool>("Used")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
                     b.Property<int>("UsuarioId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("UsuarioID");
 
                     b.HasKey("TokenId")
@@ -428,69 +363,47 @@ namespace HoneyBack.Migrations
                     b.ToTable("PasswordResetTokens", (string)null);
                 });
 
-            modelBuilder.Entity("HoneyBack.Models.Reporte", b =>
+            modelBuilder.Entity("HoneyBack.Models.RefreshToken", b =>
                 {
-                    b.Property<int>("ReporteId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("ReporteID");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReporteId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ArchivoUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
-                        .HasColumnName("ArchivoURL");
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Pendiente");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
-                    b.Property<DateOnly?>("FechaFin")
-                        .HasColumnType("date");
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime?>("FechaGeneracion")
-                        .HasColumnType("datetime");
-
-                    b.Property<DateOnly?>("FechaInicio")
-                        .HasColumnType("date");
-
-                    b.Property<DateTime>("FechaReporte")
+                    b.Property<bool>("IsRevoked")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
-                    b.Property<string>("Nombre")
+                    b.Property<string>("ReplacedByToken")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("Token")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
-                    b.Property<string>("Parametros")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("integer");
 
-                    b.Property<string>("TipoReporte")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.HasKey("Id");
 
-                    b.Property<int?>("UsuarioId")
-                        .HasColumnType("int")
-                        .HasColumnName("UsuarioID");
+                    b.HasIndex(new[] { "UsuarioId", "IsRevoked", "ExpiresAt" }, "IDX_RefreshTokens_Active");
 
-                    b.HasKey("ReporteId")
-                        .HasName("PK__Reportes__0B29EA4E01DDEDB4");
+                    b.HasIndex(new[] { "Token" }, "IDX_RefreshTokens_Token")
+                        .IsUnique();
 
-                    b.HasIndex("UsuarioId");
-
-                    b.ToTable("Reportes");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("HoneyBack.Models.Sesione", b =>
@@ -500,37 +413,37 @@ namespace HoneyBack.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("SesionID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("SesionId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SesionId"));
 
                     b.Property<bool?>("Activa")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<DateTime?>("FechaCreacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTime>("FechaExpiracion")
-                        .HasColumnType("datetime");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Ipaddress")
                         .HasMaxLength(45)
-                        .HasColumnType("nvarchar(45)")
+                        .HasColumnType("character varying(45)")
                         .HasColumnName("IPAddress");
 
                     b.Property<string>("TokenSesion")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("UserAgent")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("UsuarioId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("UsuarioID");
 
                     b.HasKey("SesionId")
@@ -544,95 +457,26 @@ namespace HoneyBack.Migrations
                     b.ToTable("Sesiones");
                 });
 
-            modelBuilder.Entity("HoneyBack.Models.Template", b =>
-                {
-                    b.Property<int>("TemplateId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("TemplateID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TemplateId"));
-
-                    b.Property<bool?>("Activo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<int>("CategoriaId")
-                        .HasColumnType("int")
-                        .HasColumnName("CategoriaID");
-
-                    b.Property<string>("Descripcion")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("FechaCreacion")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
-
-                    b.Property<DateTime?>("FechaUltimoUso")
-                        .HasColumnType("datetime");
-
-                    b.Property<int?>("FrecuenciaUso")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<decimal>("Monto")
-                        .HasColumnType("decimal(15, 2)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int")
-                        .HasColumnName("UsuarioID");
-
-                    b.HasKey("TemplateId")
-                        .HasName("PK__Template__F87ADD07FF1A0B47");
-
-                    b.HasIndex("CategoriaId");
-
-                    b.HasIndex(new[] { "Activo" }, "IDX_Templates_Activo");
-
-                    b.HasIndex(new[] { "FrecuenciaUso" }, "IDX_Templates_Frecuencia")
-                        .IsDescending();
-
-                    b.HasIndex(new[] { "UsuarioId" }, "IDX_Templates_Usuario");
-
-                    b.HasIndex(new[] { "UsuarioId", "Nombre" }, "UQ_Template_Nombre_Usuario")
-                        .IsUnique();
-
-                    b.ToTable("Templates");
-                });
-
             modelBuilder.Entity("HoneyBack.Models.Transaccione", b =>
                 {
                     b.Property<int>("TransaccionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("TransaccionID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("TransaccionId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TransaccionId"));
 
                     b.Property<string>("Categoria")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateOnly>("Fecha")
                         .HasColumnType("date");
 
                     b.Property<DateTime>("FechaCreacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<decimal>("Monto")
                         .HasColumnType("decimal(15, 2)");
@@ -640,15 +484,15 @@ namespace HoneyBack.Migrations
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Tipo")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<int>("UsuarioId")
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("UsuarioID");
 
                     b.HasKey("TransaccionId")
@@ -667,55 +511,55 @@ namespace HoneyBack.Migrations
                 {
                     b.Property<int>("UsuarioId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("integer")
                         .HasColumnName("UsuarioID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UsuarioId"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UsuarioId"));
 
                     b.Property<bool?>("Activo")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
+                        .HasColumnType("boolean")
                         .HasDefaultValue(true);
 
                     b.Property<string>("AvatarUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)")
+                        .HasColumnType("character varying(500)")
                         .HasColumnName("AvatarURL");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTime>("FechaRegistro")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<DateTime?>("FechaUltimaActualizacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime")
-                        .HasDefaultValueSql("(getdate())");
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now()");
 
                     b.Property<string>("NombreCompleto")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("character varying(255)");
 
                     b.Property<string>("PreferenciasMoneda")
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)")
+                        .HasColumnType("character varying(3)")
                         .HasDefaultValue("COP");
 
                     b.Property<string>("Telefono")
                         .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("character varying(20)");
 
                     b.HasKey("UsuarioId")
                         .HasName("PK__Usuarios__2B3DE7981B407AB9");
@@ -724,17 +568,6 @@ namespace HoneyBack.Migrations
                         .IsUnique();
 
                     b.ToTable("Usuarios");
-                });
-
-            modelBuilder.Entity("HoneyBack.Models.CategoriasTransaccione", b =>
-                {
-                    b.HasOne("HoneyBack.Models.Usuario", "Usuario")
-                        .WithMany("CategoriasTransacciones")
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("FK_Categorias_Usuarios");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("HoneyBack.Models.ConfiguracionesUsuario", b =>
@@ -749,21 +582,14 @@ namespace HoneyBack.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("HoneyBack.Models.EstadisticasMensuale", b =>
+            modelBuilder.Entity("HoneyBack.Models.EntornoPersonal", b =>
                 {
-                    b.HasOne("HoneyBack.Models.CategoriasTransaccione", "CategoriaMayorGasto")
-                        .WithMany("EstadisticasMensuales")
-                        .HasForeignKey("CategoriaMayorGastoId")
-                        .HasConstraintName("FK_Estadisticas_Categorias");
-
                     b.HasOne("HoneyBack.Models.Usuario", "Usuario")
-                        .WithMany("EstadisticasMensuales")
+                        .WithMany("EntornosPersonales")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK_Estadisticas_Usuarios");
-
-                    b.Navigation("CategoriaMayorGasto");
+                        .HasConstraintName("FK_EntornosPersonales_Usuarios");
 
                     b.Navigation("Usuario");
                 });
@@ -803,12 +629,14 @@ namespace HoneyBack.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("HoneyBack.Models.Reporte", b =>
+            modelBuilder.Entity("HoneyBack.Models.RefreshToken", b =>
                 {
                     b.HasOne("HoneyBack.Models.Usuario", "Usuario")
-                        .WithMany("Reportes")
+                        .WithMany()
                         .HasForeignKey("UsuarioId")
-                        .HasConstraintName("FK_Reportes_Usuarios");
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_RefreshTokens_Usuarios");
 
                     b.Navigation("Usuario");
                 });
@@ -820,26 +648,6 @@ namespace HoneyBack.Migrations
                         .HasForeignKey("UsuarioId")
                         .IsRequired()
                         .HasConstraintName("FK_Sesiones_UsuarioID");
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("HoneyBack.Models.Template", b =>
-                {
-                    b.HasOne("HoneyBack.Models.CategoriasTransaccione", "Categoria")
-                        .WithMany("Templates")
-                        .HasForeignKey("CategoriaId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Templates_Categorias");
-
-                    b.HasOne("HoneyBack.Models.Usuario", "Usuario")
-                        .WithMany("Templates")
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_Templates_Usuarios");
-
-                    b.Navigation("Categoria");
 
                     b.Navigation("Usuario");
                 });
@@ -856,30 +664,17 @@ namespace HoneyBack.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("HoneyBack.Models.CategoriasTransaccione", b =>
-                {
-                    b.Navigation("EstadisticasMensuales");
-
-                    b.Navigation("Templates");
-                });
-
             modelBuilder.Entity("HoneyBack.Models.Usuario", b =>
                 {
-                    b.Navigation("CategoriasTransacciones");
-
                     b.Navigation("ConfiguracionesUsuario");
 
-                    b.Navigation("EstadisticasMensuales");
+                    b.Navigation("EntornosPersonales");
 
                     b.Navigation("MensajesContactos");
 
                     b.Navigation("MetasAhorros");
 
-                    b.Navigation("Reportes");
-
                     b.Navigation("Sesiones");
-
-                    b.Navigation("Templates");
 
                     b.Navigation("Transacciones");
                 });

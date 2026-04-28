@@ -1,11 +1,15 @@
+using HoneyBack.Middleware;
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Npgsql;
 using Resend;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,16 +21,33 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
-// Configurar Entity Framework con SQL Server
-var connectionString = builder.Configuration.GetConnectionString("conexion");
+// Configuracion inicial (SQL Server), se deja comentada como referencia:
+// builder.Services.AddDbContext<HoneyBalanceDbContext>(options =>
+//     options.UseSqlServer(connectionString));
+//
+// builder.Services.AddHealthChecks()
+//     .AddSqlServer(connectionString, name: "sqlserver", timeout: TimeSpan.FromSeconds(30));
+//
+// Configuracion actual: PostgreSQL (NeonDB)
+var rawConnectionString = builder.Configuration.GetConnectionString("conexion");
+if (string.IsNullOrWhiteSpace(rawConnectionString))
+{
+    throw new InvalidOperationException("ConnectionStrings:conexion no configurado");
+}
+var connectionString = NormalizeNpgsqlConnectionString(rawConnectionString);
+
 builder.Services.AddDbContext<HoneyBalanceDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString, npgsqlOptions =>
+        npgsqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorCodesToAdd: null)));
 
 // Health checks (para Docker healthcheck y monitoreo)
 builder.Services.AddHealthChecks()
-    .AddSqlServer(
-        connectionString ?? throw new InvalidOperationException("ConnectionStrings:conexion no configurado"),
-        name: "sqlserver",
+    .AddNpgSql(
+        connectionString,
+        name: "postgresql",
         timeout: TimeSpan.FromSeconds(30));
 
 // Registrar servicios
@@ -80,8 +101,8 @@ builder.Services.AddCors(options =>
         }
         
         policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
+              .WithHeaders("Content-Type", "Authorization", "X-Requested-With")
+              .WithMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
               .AllowCredentials();
     });
 });
@@ -125,6 +146,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
+
+// Rate limiting: 5 intentos / 5 min por IP en auth, 100 req / min en API general
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (ctx, _) =>
+    {
+        ctx.HttpContext.Response.ContentType = "application/json";
+        await ctx.HttpContext.Response.WriteAsJsonAsync(
+            new { mensaje = "Demasiadas solicitudes. Intenta de nuevo más tarde." });
+    };
+
+    options.AddFixedWindowLimiter("auth", cfg =>
+    {
+        cfg.PermitLimit = 5;
+        cfg.Window = TimeSpan.FromMinutes(5);
+        cfg.QueueLimit = 0;
+        cfg.AutoReplenishment = true;
+    });
+
+    options.AddFixedWindowLimiter("api", cfg =>
+    {
+        cfg.PermitLimit = 100;
+        cfg.Window = TimeSpan.FromMinutes(1);
+        cfg.QueueLimit = 0;
+        cfg.AutoReplenishment = true;
+    });
+});
 
 // Swagger + Bearer
 builder.Services.AddEndpointsApiExplorer();
@@ -249,8 +298,21 @@ else
     app.Logger.LogInformation("Database:ApplyMigrationsAtStartup=false. Se omite la ejecuci�n de migraciones autom�ticas.");
 }
 
+// Seguridad: primero los middlewares transversales
+app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
+
 // Habilitar CORS
 app.UseCors("AllowAngularApp");
+
+// Rate limiting antes de autenticación
+app.UseRateLimiter();
 
 if (swaggerEnabled)
 {
@@ -289,3 +351,67 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static string NormalizeNpgsqlConnectionString(string inputConnectionString)
+{
+    var sanitized = inputConnectionString.Trim().Trim('"').Trim();
+
+    if (sanitized.StartsWith("<", StringComparison.Ordinal) && sanitized.EndsWith(">", StringComparison.Ordinal))
+    {
+        sanitized = sanitized[1..^1].Trim();
+    }
+
+    var isPostgresUri =
+        sanitized.StartsWith("postgresql://", StringComparison.OrdinalIgnoreCase) ||
+        sanitized.StartsWith("postgres://", StringComparison.OrdinalIgnoreCase);
+
+    if (!isPostgresUri)
+    {
+        return sanitized;
+    }
+
+    var uri = new Uri(sanitized, UriKind.Absolute);
+    var userInfo = uri.UserInfo.Split(':', 2);
+    var database = uri.AbsolutePath.Trim('/');
+
+    if (userInfo.Length != 2 || string.IsNullOrWhiteSpace(database))
+    {
+        throw new InvalidOperationException("ConnectionStrings:conexion no tiene formato válido para PostgreSQL URI.");
+    }
+
+    var builder = new NpgsqlConnectionStringBuilder
+    {
+        Host = uri.Host,
+        Port = uri.IsDefaultPort ? 5432 : uri.Port,
+        Database = database,
+        Username = Uri.UnescapeDataString(userInfo[0]),
+        Password = Uri.UnescapeDataString(userInfo[1]),
+        SslMode = SslMode.Require
+    };
+
+    var queryParams = uri.Query.TrimStart('?')
+        .Split('&', StringSplitOptions.RemoveEmptyEntries);
+
+    foreach (var pair in queryParams)
+    {
+        var parts = pair.Split('=', 2, StringSplitOptions.TrimEntries);
+        var key = Uri.UnescapeDataString(parts[0]);
+        var value = parts.Length == 2 ? Uri.UnescapeDataString(parts[1]) : string.Empty;
+
+        if (key.Equals("sslmode", StringComparison.OrdinalIgnoreCase) &&
+            Enum.TryParse<SslMode>(value, ignoreCase: true, out var sslMode))
+        {
+            builder.SslMode = sslMode;
+            continue;
+        }
+
+        if ((key.Equals("channel_binding", StringComparison.OrdinalIgnoreCase) ||
+             key.Equals("channelbinding", StringComparison.OrdinalIgnoreCase)) &&
+            Enum.TryParse<ChannelBinding>(value, ignoreCase: true, out var channelBinding))
+        {
+            builder.ChannelBinding = channelBinding;
+        }
+    }
+
+    return builder.ConnectionString;
+}

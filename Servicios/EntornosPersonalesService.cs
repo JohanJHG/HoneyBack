@@ -37,8 +37,9 @@ namespace HoneyBack.Servicios
         public async Task<EntornoPersonal> CrearAsync(EntornoPersonal entorno)
         {
             entorno.ModuloClave = entorno.ModuloClave.ToLower();
-            entorno.FechaCreacion = DateTime.UtcNow;
-            entorno.FechaActualizacion = DateTime.UtcNow;
+            var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+            entorno.FechaCreacion = now;
+            entorno.FechaActualizacion = now;
 
             _context.EntornosPersonales.Add(entorno);
             await _context.SaveChangesAsync();
@@ -56,7 +57,7 @@ namespace HoneyBack.Servicios
             existente.ValorPrincipal = entorno.ValorPrincipal;
             existente.Etiqueta = entorno.Etiqueta;
             existente.DatosJson = entorno.DatosJson;
-            existente.FechaActualizacion = DateTime.UtcNow;
+            existente.FechaActualizacion = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
             await _context.SaveChangesAsync();
             return existente;

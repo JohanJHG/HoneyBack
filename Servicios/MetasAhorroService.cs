@@ -56,7 +56,7 @@ namespace HoneyBack.Servicios
 
         public async Task<MetasAhorro> CrearAsync(MetasAhorro meta)
         {
-            meta.FechaInicio = DateOnly.FromDateTime(DateTime.Now);
+            meta.FechaInicio = DateOnly.FromDateTime(DateTime.UtcNow);
             meta.MontoActual ??= 0;
             meta.Activa ??= true;
             meta.Completada = false;
@@ -83,11 +83,11 @@ namespace HoneyBack.Servicios
             metaExistente.Activa = meta.Activa;
             metaExistente.Completada = meta.Completada;
 
-            // Auto-marcar como completada si se alcanzó el objetivo
+            // Auto-marcar como completada si se alcanzï¿½ el objetivo
             if (metaExistente.MontoActual >= metaExistente.MontoObjetivo && metaExistente.Completada == false)
             {
                 metaExistente.Completada = true;
-                metaExistente.FechaCompletada = DateTime.Now;
+                metaExistente.FechaCompletada = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             }
 
             await _context.SaveChangesAsync();
@@ -102,11 +102,11 @@ namespace HoneyBack.Servicios
 
             meta.MontoActual = nuevoMonto;
 
-            // Auto-marcar como completada si se alcanzó el objetivo
+            // Auto-marcar como completada si se alcanzï¿½ el objetivo
             if (meta.MontoActual >= meta.MontoObjetivo && meta.Completada == false)
             {
                 meta.Completada = true;
-                meta.FechaCompletada = DateTime.Now;
+                meta.FechaCompletada = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             }
 
             await _context.SaveChangesAsync();
@@ -131,7 +131,7 @@ namespace HoneyBack.Servicios
                 return false;
 
             meta.Completada = true;
-            meta.FechaCompletada = DateTime.Now;
+            meta.FechaCompletada = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             await _context.SaveChangesAsync();
             return true;
         }
