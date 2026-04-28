@@ -21,14 +21,6 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
-// Configuracion inicial (SQL Server), se deja comentada como referencia:
-// builder.Services.AddDbContext<HoneyBalanceDbContext>(options =>
-//     options.UseSqlServer(connectionString));
-//
-// builder.Services.AddHealthChecks()
-//     .AddSqlServer(connectionString, name: "sqlserver", timeout: TimeSpan.FromSeconds(30));
-//
-// Configuracion actual: PostgreSQL (NeonDB)
 var rawConnectionString = builder.Configuration.GetConnectionString("conexion");
 if (string.IsNullOrWhiteSpace(rawConnectionString))
 {
