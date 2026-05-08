@@ -145,6 +145,12 @@ builder.Services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.OnRejected = async (ctx, _) =>
     {
+        var origin = ctx.HttpContext.Request.Headers.Origin.ToString();
+        if (!string.IsNullOrEmpty(origin))
+        {
+            ctx.HttpContext.Response.Headers["Access-Control-Allow-Origin"] = origin;
+            ctx.HttpContext.Response.Headers["Access-Control-Allow-Credentials"] = "true";
+        }
         ctx.HttpContext.Response.ContentType = "application/json";
         await ctx.HttpContext.Response.WriteAsJsonAsync(
             new { mensaje = "Demasiadas solicitudes. Intenta de nuevo más tarde." });

@@ -22,6 +22,7 @@ namespace HoneyBack.Controllers
         private readonly IEmailService _emailService;
         private readonly HoneyBalanceDbContext _context;
         private readonly ILogger<AuthController> _logger;
+        private readonly IWebHostEnvironment _env;
 
         private const int TokenExpirationMinutes = 15;
         private static readonly string SpecialChars = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
@@ -32,7 +33,8 @@ namespace HoneyBack.Controllers
             IJwtTokenService jwtTokenService,
             IEmailService emailService,
             HoneyBalanceDbContext context,
-            ILogger<AuthController> logger)
+            ILogger<AuthController> logger,
+            IWebHostEnvironment env)
         {
             _usuariosService = usuariosService;
             _sesionesService = sesionesService;
@@ -40,6 +42,7 @@ namespace HoneyBack.Controllers
             _emailService = emailService;
             _context = context;
             _logger = logger;
+            _env = env;
         }
 
         [HttpPost("login")]
@@ -118,8 +121,8 @@ namespace HoneyBack.Controllers
             Response.Cookies.Append("refresh_token", refreshTokenValue, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
+                Secure = !_env.IsDevelopment(),
+                SameSite = _env.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.Strict,
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
             });
 
@@ -290,8 +293,8 @@ namespace HoneyBack.Controllers
             Response.Cookies.Append("refresh_token", nuevoRefreshToken, new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
+                Secure = !_env.IsDevelopment(),
+                SameSite = _env.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.Strict,
                 Expires = DateTimeOffset.UtcNow.AddDays(7)
             });
 
