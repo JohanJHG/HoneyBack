@@ -34,6 +34,9 @@ services:
       Cors__AllowedOriginsCsv: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:4201}
       Swagger__Enabled: ${SWAGGER_ENABLED:-true}
       Database__ApplyMigrationsAtStartup: ${APPLY_MIGRATIONS_AT_STARTUP:-true}
+      Resend__ApiKey: ${RESEND_API_KEY}
+      Resend__FromEmail: ${RESEND_FROM_EMAIL:-noreply@honeybalance.online}
+      Resend__FromName: ${RESEND_FROM_NAME:-HoneyBalance}
     depends_on:
       sqlserver:
         condition: service_healthy

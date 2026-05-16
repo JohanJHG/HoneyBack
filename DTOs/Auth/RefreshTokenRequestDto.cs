@@ -1,6 +1,9 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace HoneyBack.DTOs.Auth;
 
 public class RefreshTokenRequestDto
 {
-    public string RefreshToken { get; set; } = null!;
+    [StringLength(200, ErrorMessage = "Token inválido")]
+    public string? RefreshToken { get; set; }
 }

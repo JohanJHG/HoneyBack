@@ -49,10 +49,10 @@ namespace HoneyBack.Controllers
         [EnableRateLimiting("auth")]
         public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginRequestDto request)
         {
-            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = ObtenerPrimerError(ModelState) });
 
-            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
-                return BadRequest(new { message = "Email y contraseña son requeridos" });
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
             var usuario = await _usuariosService.ObtenerPorEmailAsync(request.Email);
             if (usuario == null)
@@ -147,14 +147,10 @@ namespace HoneyBack.Controllers
         [EnableRateLimiting("auth")]
         public async Task<ActionResult<RegisterResponseDto>> Register([FromBody] RegisterRequestDto request)
         {
-            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = ObtenerPrimerError(ModelState) });
 
-            if (string.IsNullOrWhiteSpace(request.NombreCompleto) ||
-                string.IsNullOrWhiteSpace(request.Email) ||
-                string.IsNullOrWhiteSpace(request.Password))
-            {
-                return BadRequest(new { message = "Todos los campos son requeridos" });
-            }
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
             if (!IsValidEmail(request.Email))
                 return BadRequest(new { message = "El formato del email no es válido" });
@@ -212,12 +208,15 @@ namespace HoneyBack.Controllers
         [Authorize]
         public async Task<ActionResult> CambiarPassword([FromBody] CambiarPasswordDto request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = ObtenerPrimerError(ModelState) });
+
             var userId = User.GetUserId();
             if (!userId.HasValue)
                 return Unauthorized(new { message = "Token inválido" });
 
-            if (string.IsNullOrWhiteSpace(request.PasswordActual) || string.IsNullOrWhiteSpace(request.PasswordNueva))
-                return BadRequest(new { message = "Contraseña actual y nueva son requeridas" });
+            if (request.PasswordNueva != request.ConfirmarPasswordNueva)
+                return BadRequest(new { message = "La nueva contraseña y su confirmación no coinciden" });
 
             if (!EsPasswordSeguro(request.PasswordNueva, out var razon))
                 return BadRequest(new { message = razon });
@@ -227,7 +226,10 @@ namespace HoneyBack.Controllers
                 return NotFound(new { message = "Usuario no encontrado" });
 
             if (!BCrypt.Net.BCrypt.Verify(request.PasswordActual, usuario.PasswordHash))
-                return BadRequest(new { message = "La contraseña actual es incorrecta" });
+                return Unauthorized(new { message = "La contraseña actual es incorrecta" });
+
+            if (BCrypt.Net.BCrypt.Verify(request.PasswordNueva, usuario.PasswordHash))
+                return BadRequest(new { message = "La nueva contraseña no puede ser igual a la actual" });
 
             usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.PasswordNueva);
             await _usuariosService.ActualizarAsync(userId.Value, usuario);
@@ -263,14 +265,14 @@ namespace HoneyBack.Controllers
             // Acepta refresh token desde cookie HttpOnly (prod) o desde body (dev)
             var tokenValue = Request.Cookies["refresh_token"] ?? request?.RefreshToken;
             if (string.IsNullOrWhiteSpace(tokenValue))
-                return Unauthorized(new { mensaje = "Refresh token no proporcionado." });
+                return Unauthorized(new { message = "Refresh token no proporcionado." });
 
             var stored = await _context.RefreshTokens
                 .Include(r => r.Usuario)
                 .FirstOrDefaultAsync(r => r.Token == tokenValue && !r.IsRevoked);
 
             if (stored == null || stored.ExpiresAt < DateTime.UtcNow)
-                return Unauthorized(new { mensaje = "Refresh token inválido o expirado." });
+                return Unauthorized(new { message = "Refresh token inválido o expirado." });
 
             var nuevoRefreshToken = GenerarRefreshToken();
             stored.IsRevoked = true;
@@ -311,12 +313,15 @@ namespace HoneyBack.Controllers
         [EnableRateLimiting("auth")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
         {
-            var genericResponse = new { mensaje = "Si el email está registrado, recibirás un código de recuperación en tu correo." };
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = ObtenerPrimerError(ModelState) });
+
+            var genericResponse = new { message = "Si el email está registrado, recibirás un código de recuperación en tu correo." };
 
             var usuario = await _usuariosService.ObtenerPorEmailAsync(request.Email.ToLower().Trim());
             if (usuario == null)
             {
-                _logger.LogInformation("Recuperación solicitada para email no registrado");
+                _logger.LogInformation("Recuperación solicitada para email no registrado: ip={IP}", HttpContext.Connection.RemoteIpAddress);
                 return Ok(genericResponse);
             }
 
@@ -354,8 +359,11 @@ namespace HoneyBack.Controllers
         [EnableRateLimiting("auth")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = ObtenerPrimerError(ModelState) });
+
             if (!EsPasswordSeguro(request.NewPassword, out var razon))
-                return BadRequest(new { mensaje = razon });
+                return BadRequest(new { message = razon });
 
             var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
             var resetToken = await _context.PasswordResetTokens
@@ -368,11 +376,11 @@ namespace HoneyBack.Controllers
             if (resetToken == null)
             {
                 _logger.LogWarning("Intento de reset con token inválido o expirado");
-                return BadRequest(new { mensaje = "El código es inválido o ha expirado. Solicita uno nuevo." });
+                return BadRequest(new { message = "El código es inválido o ha expirado. Solicita uno nuevo." });
             }
 
             if (resetToken.Usuario == null)
-                return BadRequest(new { mensaje = "Usuario no encontrado" });
+                return BadRequest(new { message = "Usuario no encontrado" });
 
             resetToken.Usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
             resetToken.Usuario.FechaUltimaActualizacion = now;
@@ -381,7 +389,7 @@ namespace HoneyBack.Controllers
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Contraseña restablecida: usuarioId={UserId}", resetToken.UsuarioId);
-            return Ok(new { mensaje = "Contraseña restablecida exitosamente. Ya puedes iniciar sesión." });
+            return Ok(new { message = "Contraseña restablecida exitosamente. Ya puedes iniciar sesión." });
         }
 
         private static bool EsPasswordSeguro(string password, out string mensaje)
@@ -438,6 +446,14 @@ namespace HoneyBack.Controllers
             {
                 return false;
             }
+        }
+
+        private static string ObtenerPrimerError(Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary modelState)
+        {
+            return modelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .FirstOrDefault() ?? "Datos inválidos";
         }
     }
 }

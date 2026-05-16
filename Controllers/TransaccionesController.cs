@@ -24,7 +24,7 @@ namespace HoneyBack.Controllers
         {
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var transacciones = await _transaccionesService.ObtenerPorUsuarioAsync(userId.Value);
             return Ok(transacciones.Select(MapToDto));
@@ -35,11 +35,11 @@ namespace HoneyBack.Controllers
         {
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var transaccion = await _transaccionesService.ObtenerPorIdAsync(id);
             if (transaccion == null)
-                return NotFound(new { mensaje = "Transaccion no encontrada" });
+                return NotFound(new { message = "Transaccion no encontrada" });
 
             if (transaccion.UsuarioId != userId.Value)
                 return Forbid();
@@ -52,7 +52,7 @@ namespace HoneyBack.Controllers
         {
             var tokenUserId = User.GetUserId();
             if (!tokenUserId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             if (usuarioId != tokenUserId.Value)
                 return Forbid();
@@ -66,13 +66,13 @@ namespace HoneyBack.Controllers
         {
             var tokenUserId = User.GetUserId();
             if (!tokenUserId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             if (usuarioId != tokenUserId.Value)
                 return Forbid();
 
             if (tipo.ToLower() != "ingreso" && tipo.ToLower() != "gasto")
-                return BadRequest(new { mensaje = "Tipo debe ser 'ingreso' o 'gasto'" });
+                return BadRequest(new { message = "Tipo debe ser 'ingreso' o 'gasto'" });
 
             var transacciones = await _transaccionesService.ObtenerPorUsuarioYTipoAsync(usuarioId, tipo);
             return Ok(transacciones.Select(MapToDto));
@@ -83,7 +83,7 @@ namespace HoneyBack.Controllers
         {
             var tokenUserId = User.GetUserId();
             if (!tokenUserId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             if (usuarioId != tokenUserId.Value)
                 return Forbid();
@@ -100,16 +100,19 @@ namespace HoneyBack.Controllers
         {
             var tokenUserId = User.GetUserId();
             if (!tokenUserId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             if (usuarioId != tokenUserId.Value)
                 return Forbid();
 
             if (!DateOnly.TryParse(fechaInicio, out var inicio))
-                return BadRequest(new { mensaje = "fechaInicio invalida. Formato esperado: YYYY-MM-DD" });
+                return BadRequest(new { message = "fechaInicio inválida. Formato esperado: YYYY-MM-DD" });
 
             if (!DateOnly.TryParse(fechaFin, out var fin))
-                return BadRequest(new { mensaje = "fechaFin invalida. Formato esperado: YYYY-MM-DD" });
+                return BadRequest(new { message = "fechaFin inválida. Formato esperado: YYYY-MM-DD" });
+
+            if (inicio > fin)
+                return BadRequest(new { message = "fechaInicio no puede ser posterior a fechaFin" });
 
             var transacciones = await _transaccionesService.ObtenerPorUsuarioYFechaAsync(usuarioId, inicio, fin);
             return Ok(transacciones.Select(MapToDto));
@@ -123,10 +126,10 @@ namespace HoneyBack.Controllers
 
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             if (transaccionDto.Tipo.ToLower() != "ingreso" && transaccionDto.Tipo.ToLower() != "gasto")
-                return BadRequest(new { mensaje = "Tipo debe ser 'ingreso' o 'gasto'" });
+                return BadRequest(new { message = "Tipo debe ser 'ingreso' o 'gasto'" });
 
             var transaccion = new Transaccione
             {
@@ -150,11 +153,11 @@ namespace HoneyBack.Controllers
 
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var transaccionExistente = await _transaccionesService.ObtenerPorIdAsync(id);
             if (transaccionExistente == null)
-                return NotFound(new { mensaje = "Transaccion no encontrada" });
+                return NotFound(new { message = "Transaccion no encontrada" });
 
             if (transaccionExistente.UsuarioId != userId.Value)
                 return Forbid();
@@ -163,7 +166,7 @@ namespace HoneyBack.Controllers
                 transaccionDto.Tipo.ToLower() != "ingreso" &&
                 transaccionDto.Tipo.ToLower() != "gasto")
             {
-                return BadRequest(new { mensaje = "Tipo debe ser 'ingreso' o 'gasto'" });
+                return BadRequest(new { message = "Tipo debe ser 'ingreso' o 'gasto'" });
             }
 
             var transaccion = new Transaccione
@@ -184,11 +187,11 @@ namespace HoneyBack.Controllers
         {
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var transaccion = await _transaccionesService.ObtenerPorIdAsync(id);
             if (transaccion == null)
-                return NotFound(new { mensaje = "Transaccion no encontrada" });
+                return NotFound(new { message = "Transaccion no encontrada" });
 
             if (transaccion.UsuarioId != userId.Value)
                 return Forbid();
@@ -202,10 +205,16 @@ namespace HoneyBack.Controllers
         {
             var tokenUserId = User.GetUserId();
             if (!tokenUserId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             if (usuarioId != tokenUserId.Value)
                 return Forbid();
+
+            if (mes < 1 || mes > 12)
+                return BadRequest(new { message = "El mes debe estar entre 1 y 12" });
+
+            if (anio < 2000 || anio > 2100)
+                return BadRequest(new { message = "El año debe estar entre 2000 y 2100" });
 
             var totalIngresos = await _transaccionesService.ObtenerTotalIngresosPorUsuarioAsync(usuarioId, anio, mes);
             var totalGastos = await _transaccionesService.ObtenerTotalGastosPorUsuarioAsync(usuarioId, anio, mes);

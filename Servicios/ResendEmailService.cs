@@ -1,11 +1,8 @@
 using Resend;
+using System.Net;
 
 namespace HoneyBack.Servicios;
 
-/// <summary>
-/// Implementaci�n del servicio de email usando Resend.
-/// La API key se configura via DI desde User Secrets (desarrollo) o variables de entorno (producci�n).
-/// </summary>
 public class ResendEmailService : IEmailService
 {
     private readonly IResend _resend;
@@ -20,9 +17,7 @@ public class ResendEmailService : IEmailService
     {
         _resend = resend;
         _logger = logger;
-        
-        // Configuraci�n del remitente (usar dominio verificado en Resend)
-        _fromEmail = configuration["Resend:FromEmail"] ?? "onboarding@resend.dev";
+        _fromEmail = configuration["Resend:FromEmail"] ?? "soporte@honeybalance.online";
         _fromName = configuration["Resend:FromName"] ?? "HoneyBalance";
     }
 
@@ -31,13 +26,13 @@ public class ResendEmailService : IEmailService
         try
         {
             var htmlContent = GeneratePasswordResetEmailTemplate(userName, token);
-            var plainTextContent = $"Hola {userName}, tu codigo de recuperacion es: {token}. Este codigo expira en 15 minutos.";
+            var plainTextContent = $"Hola {userName}, tu código de recuperación es: {token}. Expira en 15 minutos. Si no lo solicitaste, ignora este mensaje.";
 
             var message = new EmailMessage
             {
                 From = $"{_fromName} <{_fromEmail}>",
                 To = toEmail,
-                Subject = "Recupera tu contrasena - HoneyBalance",
+                Subject = "Código de recuperación — HoneyBalance",
                 HtmlBody = htmlContent,
                 TextBody = plainTextContent
             };
@@ -46,83 +41,164 @@ public class ResendEmailService : IEmailService
 
             if (response != null)
             {
-                _logger.LogInformation(
-                    "Email de recuperacion enviado exitosamente a {ToEmail}",
-                    toEmail);
+                _logger.LogInformation("Email de recuperación enviado a {ToEmail}", toEmail);
                 return true;
             }
 
-            _logger.LogWarning("Respuesta vacia de Resend para email a {ToEmail}", toEmail);
+            _logger.LogWarning("Respuesta vacía de Resend para {ToEmail}", toEmail);
             return false;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al enviar email de recuperacion a {ToEmail}", toEmail);
+            _logger.LogError(ex, "Error al enviar email de recuperación a {ToEmail}", toEmail);
             return false;
         }
     }
 
     private static string GeneratePasswordResetEmailTemplate(string userName, string token)
     {
-        return $@"
-<!DOCTYPE html>
-<html lang=""es"">
+        var safeName = WebUtility.HtmlEncode(userName);
+
+        return $@"<!DOCTYPE html>
+<html lang=""es"" xmlns=""http://www.w3.org/1999/xhtml"">
 <head>
-    <meta charset=""UTF-8"">
-    <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+  <meta http-equiv=""Content-Type"" content=""text/html; charset=UTF-8"">
+  <link href=""https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"" rel=""stylesheet"">
+  <title>Recupera tu contraseña — HoneyBalance</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body, table, td, p, a {{ margin: 0; padding: 0; }}
+    body {{ background-color: #111111; }}
+  </style>
 </head>
-<body style=""margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #1a1a1a;"">
-    <table role=""presentation"" style=""width: 100%; border-collapse: collapse;"">
-        <tr>
-            <td align=""center"" style=""padding: 40px 0;"">
-                <table role=""presentation"" style=""width: 600px; max-width: 100%; border-collapse: collapse; background-color: #0F0F0F; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);"">
-                    <tr>
-                        <td style=""padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #FFD8A9 0%, #E8A87C 100%);"">
-                            <h1 style=""margin: 0; font-size: 28px; font-weight: 700; color: #0F0F0F;"">
-                                HoneyBalance
-                            </h1>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style=""padding: 40px;"">
-                            <h2 style=""margin: 0 0 20px; font-size: 24px; font-weight: 600; color: #F9F9F9;"">
-                                Hola {System.Net.WebUtility.HtmlEncode(userName)},
-                            </h2>
-                            <p style=""margin: 0 0 30px; font-size: 16px; line-height: 1.6; color: #CCCCCC;"">
-                                Recibimos una solicitud para restablecer la contrasena de tu cuenta.
-                                Usa el siguiente codigo para completar el proceso:
-                            </p>
-                            <div style=""background: linear-gradient(135deg, #1a1a1a 0%, #252525 100%); border: 2px solid #FFD8A9; border-radius: 12px; padding: 30px; text-align: center; margin: 30px 0;"">
-                                <p style=""margin: 0 0 10px; font-size: 14px; color: #CCCCCC; text-transform: uppercase; letter-spacing: 2px;"">
-                                    Tu codigo de verificacion
-                                </p>
-                                <h1 style=""margin: 0; font-size: 48px; font-weight: 700; color: #FFD8A9; letter-spacing: 12px; font-family: monospace;"">
-                                    {token}
-                                </h1>
-                                <p style=""margin: 15px 0 0; font-size: 13px; color: #999999;"">
-                                    Este codigo expira en <strong style=""color: #FFD8A9;"">15 minutos</strong>
-                                </p>
-                            </div>
-                            <p style=""margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #999999;"">
-                                Si no solicitaste restablecer tu contrasena, puedes ignorar este correo de forma segura.
-                                Tu contrasena actual permanecera sin cambios.
-                            </p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td style=""padding: 30px 40px; background-color: #0a0a0a; border-top: 1px solid #2a2a2a;"">
-                            <p style=""margin: 0 0 10px; font-size: 12px; color: #666666; text-align: center;"">
-                                Este es un correo automatico, por favor no respondas a este mensaje.
-                            </p>
-                            <p style=""margin: 0; font-size: 12px; color: #666666; text-align: center;"">
-                                HoneyBalance. Todos los derechos reservados.
-                            </p>
-                        </td>
-                    </tr>
-                </table>
+<body style=""margin:0;padding:0;background-color:#111111;-webkit-font-smoothing:antialiased;"">
+
+  <table role=""presentation"" width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0""
+         style=""background-color:#111111;"">
+    <tr>
+      <td align=""center"" style=""padding:48px 16px;"">
+
+        <!-- Card -->
+        <table role=""presentation"" width=""560"" cellpadding=""0"" cellspacing=""0"" border=""0""
+               style=""max-width:560px;width:100%;background-color:#171717;border-radius:20px;
+                       overflow:hidden;border:1px solid #2A2A2A;"">
+
+          <!-- HEADER -->
+          <tr>
+            <td align=""center""
+                style=""background:linear-gradient(135deg,#FFD8A9 0%,#F0B060 50%,#E8A840 100%);
+                        padding:36px 40px 30px;"">
+              <p style=""font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+                         font-size:30px;font-weight:800;color:#0F0F0F;letter-spacing:-1px;
+                         margin:0 0 6px;line-height:1;"">
+                HoneyBalance
+              </p>
+              <p style=""font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+                         font-size:11px;font-weight:600;color:rgba(0,0,0,0.45);
+                         letter-spacing:2px;text-transform:uppercase;margin:0;"">
+                Gestión financiera personal
+              </p>
             </td>
-        </tr>
-    </table>
+          </tr>
+
+          <!-- DIVIDER -->
+          <tr>
+            <td style=""height:1px;background:linear-gradient(90deg,transparent,#FFD8A9,transparent);""></td>
+          </tr>
+
+          <!-- BODY -->
+          <tr>
+            <td style=""padding:40px 44px 36px;"">
+
+              <p style=""font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+                         font-size:22px;font-weight:700;color:#F9F9F9;margin:0 0 12px;letter-spacing:-0.3px;"">
+                Hola, {safeName}
+              </p>
+
+              <p style=""font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+                         font-size:15px;font-weight:400;color:#AAAAAA;line-height:1.7;margin:0 0 32px;"">
+                Recibimos una solicitud para restablecer la contraseña de tu cuenta.
+                Usa el siguiente código para continuar.
+                <strong style=""color:#F9F9F9;"">Expira en 15 minutos.</strong>
+              </p>
+
+              <!-- OTP label -->
+              <p style=""font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+                         font-size:11px;font-weight:600;color:#FFD8A9;letter-spacing:2px;
+                         text-transform:uppercase;margin:0 0 12px;"">
+                Tu código de verificación
+              </p>
+
+              <!-- OTP block (copiable) -->
+              <table role=""presentation"" cellpadding=""0"" cellspacing=""0"" border=""0"" style=""margin-bottom:32px;"">
+                <tr>
+                  <td style=""background-color:#1C1C1C;border:2px solid #FFD8A9;border-radius:12px;
+                              padding:18px 36px;text-align:center;"">
+                    <span style=""font-family:'Courier New',Courier,monospace;
+                                  font-size:40px;font-weight:700;color:#FFD8A9;
+                                  letter-spacing:10px;user-select:all;"">
+                      {token}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Security note -->
+              <table role=""presentation"" width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                <tr>
+                  <td style=""background-color:#1C1C1C;border-left:3px solid #FFD8A9;
+                              border-radius:0 8px 8px 0;padding:14px 18px;"">
+                    <p style=""font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+                               font-size:13px;font-weight:400;color:#888888;line-height:1.6;margin:0;"">
+                      Si <strong style=""color:#AAAAAA;"">no solicitaste</strong> este código,
+                      puedes ignorar este correo con seguridad. Tu contraseña actual no cambiará.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style=""height:1px;background-color:#222222;""></td>
+          </tr>
+          <tr>
+            <td style=""padding:22px 44px 26px;background-color:#131313;"">
+              <table role=""presentation"" width=""100%"" cellpadding=""0"" cellspacing=""0"" border=""0"">
+                <tr>
+                  <td>
+                    <p style=""font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+                               font-size:12px;font-weight:600;color:#FFD8A9;margin:0 0 4px;"">
+                      HoneyBalance
+                    </p>
+                    <p style=""font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+                               font-size:11px;font-weight:400;color:#555555;margin:0;line-height:1.6;"">
+                      Mensaje automático, por favor no respondas a este correo.<br>
+                      <a href=""mailto:soporte@honeybalance.online""
+                         style=""color:#FFD8A9;text-decoration:none;"">soporte@honeybalance.online</a>
+                    </p>
+                  </td>
+                  <td align=""right"" valign=""middle"">
+                    <p style=""font-family:'Plus Jakarta Sans','Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+                               font-size:11px;color:#444444;margin:0;"">
+                      &copy; 2026
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
 </body>
 </html>";
     }

@@ -76,16 +76,9 @@ namespace HoneyBack.Servicios
 
         public async Task<int> EliminarTodosPorModuloAsync(int usuarioId, string moduloClave)
         {
-            var entornos = await _context.EntornosPersonales
+            return await _context.EntornosPersonales
                 .Where(e => e.UsuarioId == usuarioId && e.ModuloClave == moduloClave.ToLower())
-                .ToListAsync();
-
-            if (entornos.Count == 0)
-                return 0;
-
-            _context.EntornosPersonales.RemoveRange(entornos);
-            await _context.SaveChangesAsync();
-            return entornos.Count;
+                .ExecuteDeleteAsync();
         }
 
         public async Task<int> ContarPorModuloAsync(int usuarioId, string moduloClave)

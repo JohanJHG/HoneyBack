@@ -1,3 +1,4 @@
+using HoneyBack.DTOs;
 using HoneyBack.Models;
 using HoneyBack.Servicios;
 using HoneyBack.Extensions;
@@ -49,17 +50,25 @@ namespace HoneyBack.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public async Task<ActionResult<MensajesContacto>> Crear([FromBody] MensajesContacto mensaje)
+        public async Task<ActionResult<MensajesContacto>> Crear([FromBody] MensajeContactoCreateDto request)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return BadRequest(new { message = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos inválidos" });
+
+            var mensaje = new MensajesContacto
+            {
+                Nombre = request.Nombre.Trim(),
+                Email = request.Email.Trim().ToLower(),
+                Mensaje = request.Mensaje.Trim(),
+                FechaEnvio = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
+            };
 
             var userId = User.GetUserId();
             if (userId.HasValue)
                 mensaje.UsuarioId = userId.Value;
 
             var nuevoMensaje = await _mensajesService.CrearAsync(mensaje);
-            return CreatedAtAction(nameof(ObtenerPorId), new { id = nuevoMensaje.ContactoId }, nuevoMensaje);
+            return CreatedAtAction(nameof(ObtenerPorId), new { id = nuevoMensaje.ContactoId }, new { nuevoMensaje.ContactoId, nuevoMensaje.Nombre, nuevoMensaje.Email, nuevoMensaje.FechaEnvio });
         }
 
         [HttpDelete("{id}")]

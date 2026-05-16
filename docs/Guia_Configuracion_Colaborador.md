@@ -70,7 +70,7 @@ dotnet user-secrets set "Jwt:Key" "<CLAVE-JWT-QUE-COMPARTE-JOHAN>"
 
 # Email (opcional — si no lo configuras, los emails simplemente no se envían)
 dotnet user-secrets set "Resend:ApiKey" "<API-KEY-RESEND>"
-dotnet user-secrets set "Resend:FromEmail" "noreply@softbalance.com.co"
+dotnet user-secrets set "Resend:FromEmail" "soporte@honeybalance.online"
 dotnet user-secrets set "Resend:FromName" "HoneyBalance"
 ```
 

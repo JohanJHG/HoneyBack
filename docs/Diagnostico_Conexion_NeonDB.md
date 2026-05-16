@@ -70,7 +70,7 @@ Para Neon/PostgreSQL debes:
 ### 1) Configurar secreto correctamente (sin hardcodear)
 
 ```powershell
-dotnet user-secrets set "ConnectionStrings:conexion" "postgresql://<usuario>:<password>@<host>/<database>?sslmode=require&channel_binding=require"
+dotnet user-secrets set "ConnectionStrings:conexion" "postgresql://neondb_owner:npg_BHUtGQu2h5Is@ep-still-bonus-anezap2j-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 ```
 
 Para producción, usar variable de entorno o Secret Manager del cloud (no `appsettings.json` con secretos).

@@ -14,15 +14,12 @@ namespace HoneyBack.Servicios
 
         public async Task<IEnumerable<Usuario>> ObtenerTodosAsync()
         {
-            return await _context.Usuarios
-                .Include(u => u.Sesiones)
-                .ToListAsync();
+            return await _context.Usuarios.ToListAsync();
         }
 
         public async Task<Usuario?> ObtenerPorIdAsync(int id)
         {
             return await _context.Usuarios
-                .Include(u => u.Sesiones)
                 .FirstOrDefaultAsync(u => u.UsuarioId == id);
         }
 

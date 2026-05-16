@@ -81,11 +81,11 @@ namespace HoneyBack.DTOs
         public string Nombre { get; set; } = null!;
 
         [Required(ErrorMessage = "El monto es requerido")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "El monto debe ser mayor a 0")]
+        [Range(0.01, 999_999_999.99, ErrorMessage = "El monto debe estar entre 0.01 y 999,999,999.99")]
         public decimal Monto { get; set; }
 
         [Required(ErrorMessage = "El tipo es requerido (ingreso/gasto)")]
-        [StringLength(20)]
+        [RegularExpression("^(ingreso|gasto)$", ErrorMessage = "El tipo debe ser 'ingreso' o 'gasto'")]
         public string Tipo { get; set; } = null!;
 
         [Required(ErrorMessage = "La fecha es requerida")]
@@ -105,10 +105,10 @@ namespace HoneyBack.DTOs
         [StringLength(200)]
         public string? Nombre { get; set; }
 
-        [Range(0.01, double.MaxValue, ErrorMessage = "El monto debe ser mayor a 0")]
+        [Range(0.01, 999_999_999.99, ErrorMessage = "El monto debe estar entre 0.01 y 999,999,999.99")]
         public decimal? Monto { get; set; }
 
-        [StringLength(20)]
+        [RegularExpression("^(ingreso|gasto)$", ErrorMessage = "El tipo debe ser 'ingreso' o 'gasto'")]
         public string? Tipo { get; set; }
 
         public DateOnly? Fecha { get; set; }
@@ -146,14 +146,11 @@ namespace HoneyBack.DTOs
         public string? Categoria { get; set; } = "otro";
 
         [Required(ErrorMessage = "El monto objetivo es requerido")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "El monto objetivo debe ser mayor a 0")]
+        [Range(0.01, 999_999_999.99, ErrorMessage = "El monto objetivo debe estar entre 0.01 y 999,999,999.99")]
         public decimal MontoObjetivo { get; set; }
 
-        [Range(0, double.MaxValue, ErrorMessage = "El monto actual no puede ser negativo")]
+        [Range(0, 999_999_999.99, ErrorMessage = "El monto actual no puede ser negativo")]
         public decimal? MontoActual { get; set; }
-
-        [Required(ErrorMessage = "El ID del usuario es requerido")]
-        public int UsuarioId { get; set; }
 
         public DateOnly? FechaObjetivo { get; set; }
 
@@ -184,15 +181,16 @@ namespace HoneyBack.DTOs
         public string? Categoria { get; set; }
 
         [Required]
-        [Range(0.01, double.MaxValue)]
+        [Range(0.01, 999_999_999.99)]
         public decimal MontoObjetivo { get; set; }
 
-        [Range(0, double.MaxValue)]
+        [Range(0, 999_999_999.99)]
         public decimal? MontoActual { get; set; }
 
         public DateOnly? FechaObjetivo { get; set; }
 
         [StringLength(7)]
+        [RegularExpression(@"^#([A-Fa-f0-9]{6})$", ErrorMessage = "El color debe ser en formato hexadecimal (ej: #FFD8A9)")]
         public string? Color { get; set; }
 
         [StringLength(50)]

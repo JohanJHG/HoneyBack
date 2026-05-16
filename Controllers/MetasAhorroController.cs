@@ -24,7 +24,7 @@ namespace HoneyBack.Controllers
         {
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var metas = await _metasService.ObtenerPorUsuarioAsync(userId.Value);
             return Ok(metas.Select(MapToDto));
@@ -35,11 +35,11 @@ namespace HoneyBack.Controllers
         {
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var meta = await _metasService.ObtenerPorIdAsync(id);
             if (meta == null)
-                return NotFound(new { mensaje = "Meta no encontrada" });
+                return NotFound(new { message = "Meta no encontrada" });
 
             if (meta.UsuarioId != userId.Value)
                 return Forbid();
@@ -52,7 +52,7 @@ namespace HoneyBack.Controllers
         {
             var tokenUserId = User.GetUserId();
             if (!tokenUserId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             if (usuarioId != tokenUserId.Value)
                 return Forbid();
@@ -66,7 +66,7 @@ namespace HoneyBack.Controllers
         {
             var tokenUserId = User.GetUserId();
             if (!tokenUserId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             if (usuarioId != tokenUserId.Value)
                 return Forbid();
@@ -80,7 +80,7 @@ namespace HoneyBack.Controllers
         {
             var tokenUserId = User.GetUserId();
             if (!tokenUserId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             if (usuarioId != tokenUserId.Value)
                 return Forbid();
@@ -97,7 +97,7 @@ namespace HoneyBack.Controllers
 
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var meta = new MetasAhorro
             {
@@ -125,11 +125,11 @@ namespace HoneyBack.Controllers
 
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var metaExistente = await _metasService.ObtenerPorIdAsync(id);
             if (metaExistente == null)
-                return NotFound(new { mensaje = "Meta no encontrada" });
+                return NotFound(new { message = "Meta no encontrada" });
 
             if (metaExistente.UsuarioId != userId.Value)
                 return Forbid();
@@ -157,15 +157,15 @@ namespace HoneyBack.Controllers
         public async Task<ActionResult<MetaAhorroResponseDto>> ActualizarMonto(int id, [FromBody] decimal nuevoMonto)
         {
             if (nuevoMonto < 0)
-                return BadRequest(new { mensaje = "El monto no puede ser negativo" });
+                return BadRequest(new { message = "El monto no puede ser negativo" });
 
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var metaExistente = await _metasService.ObtenerPorIdAsync(id);
             if (metaExistente == null)
-                return NotFound(new { mensaje = "Meta no encontrada" });
+                return NotFound(new { message = "Meta no encontrada" });
 
             if (metaExistente.UsuarioId != userId.Value)
                 return Forbid();
@@ -179,20 +179,20 @@ namespace HoneyBack.Controllers
         {
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var meta = await _metasService.ObtenerPorIdAsync(id);
             if (meta == null)
-                return NotFound(new { mensaje = "Meta no encontrada" });
+                return NotFound(new { message = "Meta no encontrada" });
 
             if (meta.UsuarioId != userId.Value)
                 return Forbid();
 
             var resultado = await _metasService.MarcarComoCompletadaAsync(id);
             if (!resultado)
-                return NotFound(new { mensaje = "Meta no encontrada" });
+                return NotFound(new { message = "Meta no encontrada" });
 
-            return Ok(new { mensaje = "Meta marcada como completada exitosamente" });
+            return Ok(new { message = "Meta marcada como completada exitosamente" });
         }
 
         [HttpDelete("{id}")]
@@ -200,17 +200,17 @@ namespace HoneyBack.Controllers
         {
             var userId = User.GetUserId();
             if (!userId.HasValue)
-                return Unauthorized(new { mensaje = "Usuario no autenticado" });
+                return Unauthorized(new { message = "Usuario no autenticado" });
 
             var meta = await _metasService.ObtenerPorIdAsync(id);
             if (meta == null)
-                return NotFound(new { mensaje = "Meta no encontrada" });
+                return NotFound(new { message = "Meta no encontrada" });
 
             if (meta.UsuarioId != userId.Value)
                 return Forbid();
 
             await _metasService.EliminarAsync(id);
-            return Ok(new { mensaje = "Meta eliminada exitosamente" });
+            return Ok(new { message = "Meta eliminada exitosamente" });
         }
 
         private static MetaAhorroResponseDto MapToDto(MetasAhorro meta) => new()
