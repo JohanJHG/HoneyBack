@@ -13,10 +13,17 @@ namespace HoneyBack.Controllers
     public class MensajesContactoController : ControllerBase
     {
         private readonly IMensajesContactoService _mensajesService;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<MensajesContactoController> _logger;
 
-        public MensajesContactoController(IMensajesContactoService mensajesService)
+        public MensajesContactoController(
+            IMensajesContactoService mensajesService,
+            IEmailService emailService,
+            ILogger<MensajesContactoController> logger)
         {
             _mensajesService = mensajesService;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -53,22 +60,39 @@ namespace HoneyBack.Controllers
         public async Task<ActionResult<MensajesContacto>> Crear([FromBody] MensajeContactoCreateDto request)
         {
             if (!ModelState.IsValid)
-                return BadRequest(new { message = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos inválidos" });
+                return BadRequest(new { mensaje = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos inválidos" });
 
-            var mensaje = new MensajesContacto
+            var nombre = request.Nombre.Trim();
+            var email = request.Email.Trim().ToLower();
+            var mensajeTexto = request.Mensaje.Trim();
+
+            var entidad = new MensajesContacto
             {
-                Nombre = request.Nombre.Trim(),
-                Email = request.Email.Trim().ToLower(),
-                Mensaje = request.Mensaje.Trim(),
+                Nombre = nombre,
+                Email = email,
+                Mensaje = mensajeTexto,
                 FechaEnvio = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified)
             };
 
             var userId = User.GetUserId();
             if (userId.HasValue)
-                mensaje.UsuarioId = userId.Value;
+                entidad.UsuarioId = userId.Value;
 
-            var nuevoMensaje = await _mensajesService.CrearAsync(mensaje);
-            return CreatedAtAction(nameof(ObtenerPorId), new { id = nuevoMensaje.ContactoId }, new { nuevoMensaje.ContactoId, nuevoMensaje.Nombre, nuevoMensaje.Email, nuevoMensaje.FechaEnvio });
+            var nuevoMensaje = await _mensajesService.CrearAsync(entidad);
+            _logger.LogInformation(
+                "Nuevo mensaje de contacto guardado. Id={ContactoId} De={Email} UsuarioId={UsuarioId}",
+                nuevoMensaje.ContactoId, email, userId?.ToString() ?? "anónimo");
+
+            // Notificar a soporte sin bloquear la respuesta al cliente
+            _ = _emailService.SendContactNotificationAsync(nombre, email, mensajeTexto)
+                .ContinueWith(t =>
+                {
+                    if (t.IsFaulted)
+                        _logger.LogError(t.Exception, "Error al enviar notificación de contacto para Id={ContactoId}", nuevoMensaje.ContactoId);
+                });
+
+            return CreatedAtAction(nameof(ObtenerPorId), new { id = nuevoMensaje.ContactoId },
+                new { nuevoMensaje.ContactoId, nuevoMensaje.Nombre, nuevoMensaje.Email, nuevoMensaje.FechaEnvio });
         }
 
         [HttpDelete("{id}")]

@@ -1,8 +1,8 @@
 namespace HoneyBack.Servicios;
 
 /// <summary>
-/// Implementación de email que no envía correos.
-/// Se usa cuando la API key de Resend no está configurada.
+/// Implementaciï¿½n de email que no envï¿½a correos.
+/// Se usa cuando la API key de Resend no estï¿½ configurada.
 /// Solo registra en logs para desarrollo/testing.
 /// </summary>
 public class NoOpEmailService : IEmailService
@@ -17,11 +17,16 @@ public class NoOpEmailService : IEmailService
     public Task<bool> SendPasswordResetEmailAsync(string toEmail, string userName, string token)
     {
         _logger.LogWarning(
-            "[NoOpEmailService] Email NO enviado (API key no configurada). " +
-            "To: {ToEmail}, User: {UserName}, Token: {Token}",
+            "[NoOpEmailService] Email de recuperaciÃ³n NO enviado (API key no configurada). To={ToEmail} User={UserName} Token={Token}",
             toEmail, userName, token);
-        
-        // Retorna true para que el flujo continúe (útil en desarrollo)
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> SendContactNotificationAsync(string fromName, string fromEmail, string mensaje)
+    {
+        _logger.LogWarning(
+            "[NoOpEmailService] NotificaciÃ³n de contacto NO enviada (API key no configurada). From={FromEmail} Nombre={FromName}",
+            fromEmail, fromName);
         return Task.FromResult(true);
     }
 }

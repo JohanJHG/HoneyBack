@@ -55,6 +55,89 @@ public class ResendEmailService : IEmailService
         }
     }
 
+    public async Task<bool> SendContactNotificationAsync(string fromName, string fromEmail, string mensaje)
+    {
+        try
+        {
+            var safeName = WebUtility.HtmlEncode(fromName);
+            var safeEmail = WebUtility.HtmlEncode(fromEmail);
+            var safeMensaje = WebUtility.HtmlEncode(mensaje).Replace("\n", "<br>");
+
+            var isRecomendacion = mensaje.StartsWith("[RECOMENDACIÓN DE ENTORNO]", StringComparison.OrdinalIgnoreCase);
+            var asunto = isRecomendacion
+                ? "Nueva recomendación de entorno — HoneyBalance"
+                : "Nuevo mensaje de contacto — HoneyBalance";
+
+            var htmlBody = $@"<!DOCTYPE html>
+<html lang=""es""><head><meta charset=""UTF-8""><title>{asunto}</title></head>
+<body style=""margin:0;padding:0;background:#111111;font-family:'Segoe UI',Arial,sans-serif;"">
+  <table width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background:#111111;"">
+    <tr><td align=""center"" style=""padding:40px 16px;"">
+      <table width=""560"" cellpadding=""0"" cellspacing=""0""
+             style=""max-width:560px;background:#171717;border-radius:16px;border:1px solid #2A2A2A;"">
+        <tr>
+          <td style=""background:linear-gradient(135deg,#FFD8A9,#E8A840);padding:28px 36px;border-radius:16px 16px 0 0;"">
+            <p style=""font-size:22px;font-weight:800;color:#0F0F0F;margin:0;"">HoneyBalance</p>
+            <p style=""font-size:12px;color:rgba(0,0,0,0.5);margin:4px 0 0;letter-spacing:1px;text-transform:uppercase;"">
+              {(isRecomendacion ? "Recomendación de entorno" : "Mensaje de contacto")}
+            </p>
+          </td>
+        </tr>
+        <tr><td style=""padding:32px 36px;"">
+          <p style=""font-size:14px;color:#AAAAAA;margin:0 0 24px;"">
+            Se recibió un nuevo {(isRecomendacion ? "recomendación" : "mensaje")} desde la plataforma.
+          </p>
+          <table width=""100%"" cellpadding=""0"" cellspacing=""0"" style=""background:#1C1C1C;border-radius:10px;padding:20px;"">
+            <tr><td style=""padding:8px 16px;"">
+              <p style=""font-size:11px;color:#FFD8A9;text-transform:uppercase;letter-spacing:1px;margin:0 0 4px;"">De</p>
+              <p style=""font-size:15px;color:#F9F9F9;margin:0;"">{safeName} &lt;{safeEmail}&gt;</p>
+            </td></tr>
+            <tr><td style=""padding:8px 16px;"">
+              <p style=""font-size:11px;color:#FFD8A9;text-transform:uppercase;letter-spacing:1px;margin:0 0 4px;"">Mensaje</p>
+              <p style=""font-size:14px;color:#DDDDDD;margin:0;line-height:1.7;white-space:pre-wrap;"">{safeMensaje}</p>
+            </td></tr>
+          </table>
+        </td></tr>
+        <tr>
+          <td style=""padding:16px 36px 24px;background:#131313;border-radius:0 0 16px 16px;"">
+            <p style=""font-size:11px;color:#555555;margin:0;"">
+              HoneyBalance · <a href=""mailto:soporte@honeybalance.online"" style=""color:#FFD8A9;text-decoration:none;"">soporte@honeybalance.online</a>
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>";
+
+            var message = new EmailMessage
+            {
+                From = $"{_fromName} <{_fromEmail}>",
+                To = "soporte@honeybalance.online",
+                ReplyTo = fromEmail,
+                Subject = asunto,
+                HtmlBody = htmlBody,
+                TextBody = $"De: {fromName} <{fromEmail}>\n\n{mensaje}",
+            };
+
+            var response = await _resend.EmailSendAsync(message);
+
+            if (response != null)
+            {
+                _logger.LogInformation("Notificación de contacto enviada a soporte desde {FromEmail}", fromEmail);
+                return true;
+            }
+
+            _logger.LogWarning("Respuesta vacía de Resend para notificación de contacto de {FromEmail}", fromEmail);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al enviar notificación de contacto de {FromEmail}", fromEmail);
+            return false;
+        }
+    }
+
     private static string GeneratePasswordResetEmailTemplate(string userName, string token)
     {
         var safeName = WebUtility.HtmlEncode(userName);

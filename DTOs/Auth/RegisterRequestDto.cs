@@ -10,7 +10,7 @@ namespace HoneyBack.DTOs.Auth
 
         [Required(ErrorMessage = "El email es requerido")]
         [EmailAddress(ErrorMessage = "Formato de email inválido")]
-        [StringLength(255, ErrorMessage = "El email no puede exceder 255 caracteres")]
+        [StringLength(255, MinimumLength = 6, ErrorMessage = "El email debe tener entre 6 y 255 caracteres")]
         public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "La contraseña es requerida")]

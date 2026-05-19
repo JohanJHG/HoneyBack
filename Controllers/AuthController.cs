@@ -78,6 +78,7 @@ namespace HoneyBack.Controllers
             }
             catch (BCrypt.Net.SaltParseException)
             {
+                _logger.LogWarning("Hash corrupto (SaltParseException): usuarioId={UserId} ip={IP}", usuario.UsuarioId, ip);
                 passwordValida = usuario.PasswordHash == request.Password;
                 requiereMigracion = true;
             }
@@ -90,6 +91,7 @@ namespace HoneyBack.Controllers
 
             if (requiereMigracion)
             {
+                _logger.LogInformation("Migrando hash de contraseña a BCrypt: usuarioId={UserId}", usuario.UsuarioId);
                 usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
                 await _usuariosService.ActualizarAsync(usuario.UsuarioId, usuario);
             }
@@ -226,7 +228,10 @@ namespace HoneyBack.Controllers
                 return NotFound(new { message = "Usuario no encontrado" });
 
             if (!BCrypt.Net.BCrypt.Verify(request.PasswordActual, usuario.PasswordHash))
+            {
+                _logger.LogWarning("Cambio de contraseña fallido: contraseña actual incorrecta. usuarioId={UserId}", userId.Value);
                 return Unauthorized(new { message = "La contraseña actual es incorrecta" });
+            }
 
             if (BCrypt.Net.BCrypt.Verify(request.PasswordNueva, usuario.PasswordHash))
                 return BadRequest(new { message = "La nueva contraseña no puede ser igual a la actual" });
@@ -272,7 +277,10 @@ namespace HoneyBack.Controllers
                 .FirstOrDefaultAsync(r => r.Token == tokenValue && !r.IsRevoked);
 
             if (stored == null || stored.ExpiresAt < DateTime.UtcNow)
+            {
+                _logger.LogWarning("Refresh token inválido o expirado. ip={IP}", HttpContext.Connection.RemoteIpAddress);
                 return Unauthorized(new { message = "Refresh token inválido o expirado." });
+            }
 
             var nuevoRefreshToken = GenerarRefreshToken();
             stored.IsRevoked = true;
@@ -350,7 +358,10 @@ namespace HoneyBack.Controllers
                 usuario.NombreCompleto ?? usuario.Email,
                 token);
 
-            _logger.LogInformation("Código de recuperación generado: usuarioId={UserId} emailEnviado={Sent}", usuario.UsuarioId, emailSent);
+            if (emailSent)
+                _logger.LogInformation("Código de recuperación generado y enviado: usuarioId={UserId}", usuario.UsuarioId);
+            else
+                _logger.LogWarning("Código de recuperación generado pero email NO enviado: usuarioId={UserId}", usuario.UsuarioId);
             return Ok(genericResponse);
         }
 

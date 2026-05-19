@@ -13,6 +13,7 @@ namespace HoneyBack.Controllers
     public class EntornosPersonalesController : ControllerBase
     {
         private readonly IEntornosPersonalesService _entornosService;
+        private readonly ILogger<EntornosPersonalesController> _logger;
         private const int MaxRegistrosPorModulo = 50;
 
         private static readonly HashSet<string> ModulosValidos = new(StringComparer.OrdinalIgnoreCase)
@@ -21,9 +22,12 @@ namespace HoneyBack.Controllers
             "gastos-hormiga", "fondo-emergencia", "suscripciones"
         };
 
-        public EntornosPersonalesController(IEntornosPersonalesService entornosService)
+        public EntornosPersonalesController(
+            IEntornosPersonalesService entornosService,
+            ILogger<EntornosPersonalesController> logger)
         {
             _entornosService = entornosService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -159,6 +163,7 @@ namespace HoneyBack.Controllers
                 return BadRequest(new { mensaje = $"Modulo '{moduloClave}' no es valido" });
 
             var eliminados = await _entornosService.EliminarTodosPorModuloAsync(userId.Value, moduloClave);
+            _logger.LogWarning("LimpiarModulo: usuarioId={UserId} modulo={Modulo} eliminados={Eliminados}", userId.Value, moduloClave, eliminados);
             return Ok(new { mensaje = $"{eliminados} registros eliminados", eliminados });
         }
 

@@ -60,12 +60,12 @@ namespace HoneyBack.DTOs
     public class MensajeContactoCreateDto
     {
         [Required(ErrorMessage = "El nombre es requerido")]
-        [StringLength(255)]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "El nombre debe tener entre 2 y 255 caracteres")]
         public string Nombre { get; set; } = null!;
 
         [Required(ErrorMessage = "El email es requerido")]
-        [EmailAddress(ErrorMessage = "Email invalido")]
-        [StringLength(255)]
+        [EmailAddress(ErrorMessage = "Formato de email inválido")]
+        [StringLength(255, MinimumLength = 6, ErrorMessage = "El email debe tener entre 6 y 255 caracteres")]
         public string Email { get; set; } = null!;
 
         [Required(ErrorMessage = "El mensaje es requerido")]
