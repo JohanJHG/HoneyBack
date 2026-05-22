@@ -1,0 +1,96 @@
+name: Build & Deploy Backend
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/honeybalance-backend
+
+jobs:
+  build-and-push:
+    name: Build & Push imagen Docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login a GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Metadata de la imagen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build y Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy al Droplet
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/honeybalance
+
+            docker compose pull backend
+            docker compose up -d --no-deps backend
+            docker image prune -f
+
+            echo "Deploy del backend completado"
+            docker compose ps
+
+      - name: Verificar health del backend
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            echo "Esperando inicializacion del backend (migraciones EF Core + NeonDB)..."
+            sleep 70
+
+            HEALTH=$(docker inspect --format='{{.State.Health.Status}}' honeyback_api 2>/dev/null || echo "unknown")
+            echo "Docker health status: $HEALTH"
+
+            if [ "$HEALTH" = "healthy" ]; then
+              echo "Backend OK — health check pasado"
+            else
+              echo "ADVERTENCIA — Backend status: $HEALTH. Logs recientes:"
+              docker compose -f /opt/honeybalance/docker-compose.yml logs backend --tail=50
+            fi
