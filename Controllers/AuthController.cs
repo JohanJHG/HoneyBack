@@ -1,3 +1,4 @@
+using Google.Apis.Auth;
 using HoneyBack.DTOs.Auth;
 using HoneyBack.Extensions;
 using HoneyBack.Models;
@@ -23,6 +24,7 @@ namespace HoneyBack.Controllers
         private readonly HoneyBalanceDbContext _context;
         private readonly ILogger<AuthController> _logger;
         private readonly IWebHostEnvironment _env;
+        private readonly IConfiguration _configuration;
 
         private const int TokenExpirationMinutes = 15;
         private static readonly string SpecialChars = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
@@ -34,7 +36,8 @@ namespace HoneyBack.Controllers
             IEmailService emailService,
             HoneyBalanceDbContext context,
             ILogger<AuthController> logger,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            IConfiguration configuration)
         {
             _usuariosService = usuariosService;
             _sesionesService = sesionesService;
@@ -43,6 +46,7 @@ namespace HoneyBack.Controllers
             _context = context;
             _logger = logger;
             _env = env;
+            _configuration = configuration;
         }
 
         [HttpPost("login")]
@@ -401,6 +405,99 @@ namespace HoneyBack.Controllers
 
             _logger.LogInformation("Contraseña restablecida: usuarioId={UserId}", resetToken.UsuarioId);
             return Ok(new { message = "Contraseña restablecida exitosamente. Ya puedes iniciar sesión." });
+        }
+
+        [HttpPost("google")]
+        [AllowAnonymous]
+        [EnableRateLimiting("auth")]
+        public async Task<ActionResult<LoginResponseDto>> GoogleLogin([FromBody] GoogleLoginRequestDto request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(new { message = ObtenerPrimerError(ModelState) });
+
+            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            try
+            {
+                var clientId = _configuration["Google:ClientId"]
+                    ?? throw new InvalidOperationException("Google:ClientId no configurado");
+
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { clientId }
+                };
+
+                var payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, settings);
+
+                var usuario = await _usuariosService.ObtenerPorEmailAsync(payload.Email);
+
+                if (usuario == null)
+                {
+                    usuario = new Usuario
+                    {
+                        NombreCompleto = payload.Name ?? payload.Email,
+                        Email = payload.Email.ToLower().Trim(),
+                        PasswordHash = "GOOGLE_OAUTH",
+                        FechaRegistro = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                        AvatarUrl = payload.Picture,
+                        Activo = true
+                    };
+                    usuario = await _usuariosService.CrearAsync(usuario);
+                    _logger.LogInformation("Usuario creado via Google OAuth: usuarioId={UserId} ip={IP}", usuario.UsuarioId, ip);
+                }
+
+                var (token, expiresAt) = _jwtTokenService.Generate(usuario);
+
+                var sesion = new Sesione
+                {
+                    UsuarioId = usuario.UsuarioId,
+                    TokenSesion = token,
+                    FechaExpiracion = DateTime.SpecifyKind(expiresAt, DateTimeKind.Unspecified),
+                    Ipaddress = ip
+                };
+                await _sesionesService.CrearAsync(sesion);
+                await _sesionesService.LimpiarSesionesExpiradasAsync();
+
+                var refreshTokenValue = GenerarRefreshToken();
+                _context.RefreshTokens.Add(new HoneyBack.Models.RefreshToken
+                {
+                    UsuarioId = usuario.UsuarioId,
+                    Token = refreshTokenValue,
+                    ExpiresAt = DateTime.SpecifyKind(DateTime.UtcNow.AddDays(7), DateTimeKind.Unspecified),
+                    CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                    IsRevoked = false
+                });
+                await _context.SaveChangesAsync();
+
+                Response.Cookies.Append("refresh_token", refreshTokenValue, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = !_env.IsDevelopment(),
+                    SameSite = _env.IsDevelopment() ? SameSiteMode.Lax : SameSiteMode.Strict,
+                    Expires = DateTimeOffset.UtcNow.AddDays(7)
+                });
+
+                _logger.LogInformation("Google login exitoso: usuarioId={UserId} ip={IP}", usuario.UsuarioId, ip);
+
+                return Ok(new LoginResponseDto
+                {
+                    Token = token,
+                    ExpiresAt = expiresAt.ToString("o"),
+                    RefreshToken = refreshTokenValue,
+                    Usuario = new UsuarioDto
+                    {
+                        UsuarioId = usuario.UsuarioId,
+                        NombreCompleto = usuario.NombreCompleto,
+                        Email = usuario.Email,
+                        FechaRegistro = usuario.FechaRegistro
+                    }
+                });
+            }
+            catch (InvalidJwtException ex)
+            {
+                _logger.LogWarning("Token de Google inválido: {Msg} ip={IP}", ex.Message, ip);
+                return Unauthorized(new { message = "Token de Google inválido o expirado" });
+            }
         }
 
         private static bool EsPasswordSeguro(string password, out string mensaje)
