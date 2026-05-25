@@ -498,6 +498,11 @@ namespace HoneyBack.Controllers
                 _logger.LogWarning("Token de Google inválido: {Msg} ip={IP}", ex.Message, ip);
                 return Unauthorized(new { message = "Token de Google inválido o expirado" });
             }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Google:ClientId"))
+            {
+                _logger.LogError("Google:ClientId no configurado correctamente en el servidor");
+                return StatusCode(503, new { message = "El servicio de autenticación con Google no está disponible temporalmente" });
+            }
         }
 
         private static bool EsPasswordSeguro(string password, out string mensaje)

@@ -9,6 +9,7 @@ public class SecurityHeadersMiddleware(RequestDelegate next)
         ctx.Response.Headers["X-XSS-Protection"] = "1; mode=block";
         ctx.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
         ctx.Response.Headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()";
+        ctx.Response.Headers["Cross-Origin-Opener-Policy"] = "same-origin-allow-popups";
 
         if (ctx.Request.IsHttps)
             ctx.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
