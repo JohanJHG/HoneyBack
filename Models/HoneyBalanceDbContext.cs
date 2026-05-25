@@ -233,6 +233,9 @@ public partial class HoneyBalanceDbContext : DbContext
                 .HasMaxLength(3)
                 .HasDefaultValue("COP");
             entity.Property(e => e.Telefono).HasMaxLength(20);
+            entity.Property(e => e.Rol)
+                .HasDefaultValue(RolUsuario.Usuario)
+                .HasConversion<int>();
         });
 
         modelBuilder.Entity<PasswordResetToken>(entity =>

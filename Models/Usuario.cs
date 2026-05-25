@@ -25,6 +25,8 @@ public partial class Usuario
 
     public string? AvatarUrl { get; set; }
 
+    public RolUsuario Rol { get; set; } = RolUsuario.Usuario;
+
     public virtual ConfiguracionesUsuario? ConfiguracionesUsuario { get; set; }
 
     public virtual ICollection<MensajesContacto> MensajesContactos { get; set; } = new List<MensajesContacto>();

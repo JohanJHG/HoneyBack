@@ -1,3 +1,5 @@
+using HoneyBack.Models;
+
 namespace HoneyBack.DTOs.Auth
 {
     public class LoginResponseDto
@@ -14,5 +16,6 @@ namespace HoneyBack.DTOs.Auth
         public string NombreCompleto { get; set; } = null!;
         public string Email { get; set; } = null!;
         public DateTime FechaRegistro { get; set; }
+        public string Rol { get; set; } = null!;
     }
 }

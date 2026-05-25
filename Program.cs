@@ -137,7 +137,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("SuperAdmin", policy =>
+        policy.RequireRole(HoneyBack.Models.RolUsuario.SuperAdmin.ToString()));
+});
 
 // Rate limiting: 5 intentos / 5 min por IP en auth, 100 req / min en API general
 builder.Services.AddRateLimiter(options =>

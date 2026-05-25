@@ -144,7 +144,8 @@ namespace HoneyBack.Controllers
                     UsuarioId = usuario.UsuarioId,
                     NombreCompleto = usuario.NombreCompleto,
                     Email = usuario.Email,
-                    FechaRegistro = usuario.FechaRegistro
+                    FechaRegistro = usuario.FechaRegistro,
+                    Rol = usuario.Rol.ToString()
                 }
             });
         }
@@ -206,7 +207,8 @@ namespace HoneyBack.Controllers
                 UsuarioId = usuario.UsuarioId,
                 NombreCompleto = usuario.NombreCompleto,
                 Email = usuario.Email,
-                FechaRegistro = usuario.FechaRegistro
+                FechaRegistro = usuario.FechaRegistro,
+                Rol = usuario.Rol.ToString()
             });
         }
 
@@ -489,7 +491,8 @@ namespace HoneyBack.Controllers
                         UsuarioId = usuario.UsuarioId,
                         NombreCompleto = usuario.NombreCompleto,
                         Email = usuario.Email,
-                        FechaRegistro = usuario.FechaRegistro
+                        FechaRegistro = usuario.FechaRegistro,
+                        Rol = usuario.Rol.ToString()
                     }
                 });
             }

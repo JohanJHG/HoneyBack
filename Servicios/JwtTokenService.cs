@@ -29,7 +29,8 @@ namespace HoneyBack.Servicios
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.UsuarioId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim("name", user.NombreCompleto)
+                new Claim("name", user.NombreCompleto),
+                new Claim(ClaimTypes.Role, user.Rol.ToString())
             };
 
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
