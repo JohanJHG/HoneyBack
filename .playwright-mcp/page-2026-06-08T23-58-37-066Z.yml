@@ -1,0 +1,83 @@
+- main [ref=e23]:
+  - generic [ref=e55]:
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - img "HoneyBalance Logo" [ref=e61]
+        - generic [ref=e62]:
+          - heading "HoneyBalance" [level=1] [ref=e63]
+          - generic [ref=e64]: Administración ✦
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - button "Cambiar a modo oscuro" [ref=e67] [cursor=pointer]:
+            - img [ref=e68]
+          - button "Cambiar idioma" [ref=e70] [cursor=pointer]:
+            - img [ref=e71]
+          - button "Notificaciones" [ref=e73] [cursor=pointer]:
+            - img [ref=e74]
+        - generic [ref=e77] [cursor=pointer]:
+          - generic [ref=e78]:
+            - generic [ref=e79]: HoneyBalance
+            - generic [ref=e80]: Administrador
+          - generic [ref=e82]: HO
+          - img [ref=e85]
+    - complementary [ref=e87]:
+      - button "Colapsar sidebar" [ref=e88] [cursor=pointer]:
+        - img [ref=e89]
+      - navigation [ref=e91]:
+        - generic [ref=e92]:
+          - generic [ref=e93]: Principal
+          - generic [ref=e94]:
+            - link "Resumen" [ref=e95] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e96]
+              - generic [ref=e98]: Resumen
+            - link "Usuarios" [ref=e99] [cursor=pointer]:
+              - /url: /admin/usuarios
+              - img [ref=e100]
+              - generic [ref=e102]: Usuarios
+            - link "Mensajes" [ref=e103] [cursor=pointer]:
+              - /url: /admin/mensajes
+              - img [ref=e104]
+              - generic [ref=e106]: Mensajes
+        - generic [ref=e107]:
+          - generic [ref=e108]: Sistema
+          - generic [ref=e109]:
+            - link "Roles y Permisos" [ref=e110] [cursor=pointer]:
+              - /url: /admin/roles
+              - img [ref=e111]
+              - generic [ref=e113]: Roles y Permisos
+            - link "Analíticas" [ref=e114] [cursor=pointer]:
+              - /url: /admin/analiticas
+              - img [ref=e115]
+              - generic [ref=e117]: Analíticas
+    - main [ref=e119]:
+      - generic [ref=e122]:
+        - generic [ref=e124]:
+          - heading "Analíticas" [level=1] [ref=e125]
+          - paragraph [ref=e126]: Métricas de uso y registros de actividad del sistema
+        - generic [ref=e127]:
+          - button "Métricas" [ref=e128] [cursor=pointer]:
+            - img [ref=e129]
+            - text: Métricas
+          - button "Logs de Auditoría" [active] [ref=e131] [cursor=pointer]:
+            - img [ref=e132]
+            - text: Logs de Auditoría
+        - generic [ref=e190]:
+          - generic [ref=e191]:
+            - combobox [ref=e192] [cursor=pointer]:
+              - option "Todas las acciones" [selected]
+              - option "ROLE_CHANGE"
+              - option "LOGIN_FAIL"
+              - option "BACKUP"
+              - option "USER_DELETE"
+              - option "CONFIG_CHANGE"
+            - generic [ref=e193]:
+              - textbox [ref=e194]:
+                - /placeholder: Desde
+              - generic [ref=e195]: →
+              - textbox [ref=e196]:
+                - /placeholder: Hasta
+          - generic [ref=e197]:
+            - img [ref=e198]
+            - paragraph [ref=e200]: Los logs de auditoría en tiempo real estarán disponibles próximamente.
+            - generic [ref=e201]: Los cambios de roles y acciones administrativas quedarán registrados aquí.

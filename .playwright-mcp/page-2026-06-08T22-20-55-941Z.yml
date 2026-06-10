@@ -1,0 +1,149 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "HoneyBalance Logo" [ref=e9]
+        - generic [ref=e10]: HoneyBalance
+      - navigation "Navegación principal" [ref=e11]:
+        - button "Inicio" [ref=e12] [cursor=pointer]: Inicio
+        - button "Reportes" [ref=e13] [cursor=pointer]: Reportes
+        - button "Contacto" [ref=e14] [cursor=pointer]: Contacto
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - img [ref=e17]
+          - generic [ref=e19]: HoneyBalance
+        - button "Dashboard" [ref=e20] [cursor=pointer]
+        - button "Contraseña" [ref=e21] [cursor=pointer]
+        - button "Salir" [ref=e22] [cursor=pointer]
+  - main [ref=e23]:
+    - generic [ref=e25]:
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - img "HoneyBalance Logo" [ref=e31]
+          - generic [ref=e32]:
+            - heading "HoneyBalance" [level=1] [ref=e33]
+            - generic [ref=e34]: Administración ✦
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - button "Cambiar a modo oscuro" [ref=e37] [cursor=pointer]:
+              - img [ref=e38]
+            - button "Cambiar idioma" [ref=e40] [cursor=pointer]:
+              - img [ref=e41]
+            - button "Notificaciones" [ref=e43] [cursor=pointer]:
+              - img [ref=e44]
+            - button "Abrir reportes y bugs" [ref=e47] [cursor=pointer]:
+              - generic [ref=e48]: Reportes y bugs
+            - button "Abrir contacto" [ref=e49] [cursor=pointer]:
+              - generic [ref=e50]: Contáctanos
+          - generic [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]:
+              - generic [ref=e53]: Usuario HoneyBalance
+              - generic [ref=e54]: Administrador
+            - generic [ref=e56]: UH
+      - complementary [ref=e57]:
+        - button "Colapsar sidebar" [ref=e58] [cursor=pointer]:
+          - img [ref=e59]
+        - navigation [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]: Principal
+            - generic [ref=e64]:
+              - link "Resumen" [ref=e65] [cursor=pointer]:
+                - /url: /admin
+                - img [ref=e66]
+                - generic [ref=e68]: Resumen
+              - link "Usuarios" [ref=e69] [cursor=pointer]:
+                - /url: /admin/usuarios
+                - img [ref=e70]
+                - generic [ref=e72]: Usuarios
+          - generic [ref=e73]:
+            - generic [ref=e74]: Sistema
+            - generic [ref=e75]:
+              - link "Roles y Permisos" [ref=e76] [cursor=pointer]:
+                - /url: /admin/roles
+                - img [ref=e77]
+                - generic [ref=e79]: Roles y Permisos
+              - link "Analíticas" [ref=e80] [cursor=pointer]:
+                - /url: /admin/analiticas
+                - img [ref=e81]
+                - generic [ref=e83]: Analíticas
+      - main [ref=e85]:
+        - generic [ref=e88]:
+          - generic [ref=e90]:
+            - heading "Analíticas" [level=1] [ref=e91]
+            - paragraph [ref=e92]: Métricas de uso y registros de actividad del sistema
+          - generic [ref=e93]:
+            - button "Métricas" [ref=e94] [cursor=pointer]:
+              - img [ref=e95]
+              - text: Métricas
+            - button "Logs de Auditoría" [ref=e97] [cursor=pointer]:
+              - img [ref=e98]
+              - text: Logs de Auditoría
+          - generic [ref=e100]:
+            - generic [ref=e101]:
+              - generic [ref=e102]:
+                - img [ref=e104]
+                - generic [ref=e106]:
+                  - paragraph [ref=e107]: MAU
+                  - paragraph [ref=e108]: —
+                  - paragraph [ref=e109]: Usuarios activos al mes
+              - generic [ref=e110]:
+                - img [ref=e112]
+                - generic [ref=e114]:
+                  - paragraph [ref=e115]: DAU
+                  - paragraph [ref=e116]: —
+                  - paragraph [ref=e117]: Usuarios activos al día
+              - generic [ref=e118]:
+                - img [ref=e120]
+                - generic [ref=e122]:
+                  - paragraph [ref=e123]: Churn Rate
+                  - paragraph [ref=e124]: —
+                  - paragraph [ref=e125]: Usuarios perdidos / mes
+              - generic [ref=e126]:
+                - img [ref=e128]
+                - generic [ref=e130]:
+                  - paragraph [ref=e131]: Avg Session
+                  - paragraph [ref=e132]: —
+                  - paragraph [ref=e133]: Tiempo promedio de sesión
+            - generic [ref=e134]:
+              - generic [ref=e136]:
+                - heading "Retención de Usuarios" [level=3] [ref=e137]
+                - generic [ref=e138]: Últimos 12 meses
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - heading "Uso por Módulo" [level=3] [ref=e143]
+                  - generic [ref=e144]: Personal vs Empresarial
+                - generic [ref=e147]:
+                  - generic [ref=e148]:
+                    - generic [ref=e150]: Personal
+                    - strong [ref=e151]: 68%
+                  - generic [ref=e152]:
+                    - generic [ref=e154]: Empresarial
+                    - strong [ref=e155]: 32%
+  - contentinfo [ref=e157]:
+    - generic [ref=e158]:
+      - generic [ref=e159]:
+        - generic [ref=e160]:
+          - generic [ref=e161]:
+            - img "HoneyBalance Logo" [ref=e163]
+            - generic [ref=e164]: HoneyBalance
+          - paragraph [ref=e165]: La plataforma de finanzas más simple e intuitiva para uso personal y pequeños emprendimientos.
+        - generic [ref=e166]:
+          - heading "Reportes" [level=4] [ref=e167]
+          - paragraph [ref=e168]: ¿Encontraste un problema o tienes una idea?
+          - button "Reportes y bugs" [ref=e169] [cursor=pointer]
+        - generic [ref=e170]:
+          - heading "Contacto" [level=4] [ref=e171]
+          - list [ref=e172]:
+            - listitem [ref=e173]:
+              - img [ref=e174]
+              - generic [ref=e177]: soporte@honeybalance.online
+          - button "Contáctanos" [ref=e178] [cursor=pointer]
+      - generic [ref=e180]:
+        - paragraph [ref=e181]: © 2026 HoneyBalance. Todos los derechos reservados.
+        - generic [ref=e182]:
+          - link "Política de privacidad" [ref=e183] [cursor=pointer]:
+            - /url: "#"
+          - link "Términos de servicio" [ref=e184] [cursor=pointer]:
+            - /url: "#"
+          - link "Cookies" [ref=e185] [cursor=pointer]:
+            - /url: "#"

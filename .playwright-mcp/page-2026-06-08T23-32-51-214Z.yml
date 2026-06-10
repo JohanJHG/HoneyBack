@@ -1,0 +1,136 @@
+- generic [active] [ref=e1]:
+  - main [ref=e18]:
+    - generic [ref=e368]:
+      - generic [ref=e370]:
+        - generic [ref=e371]:
+          - img "HoneyBalance Logo" [ref=e374]
+          - generic [ref=e375]:
+            - heading "HoneyBalance" [level=1] [ref=e376]
+            - generic [ref=e377]: Administración ✦
+        - generic [ref=e378]:
+          - generic [ref=e379]:
+            - button "Cambiar a modo oscuro" [ref=e380] [cursor=pointer]:
+              - img [ref=e381]
+            - button "Cambiar idioma" [ref=e383] [cursor=pointer]:
+              - img [ref=e384]
+            - button "Notificaciones" [ref=e386] [cursor=pointer]:
+              - img [ref=e387]
+            - button "Abrir reportes y bugs" [ref=e390] [cursor=pointer]:
+              - img [ref=e393]
+              - generic [ref=e398]: Reportes y bugs
+            - button "Abrir contacto" [ref=e399] [cursor=pointer]:
+              - img [ref=e402]
+              - generic [ref=e406]: Contáctanos
+          - generic [ref=e407] [cursor=pointer]:
+            - generic [ref=e408]:
+              - generic [ref=e409]: Usuario HoneyBalance
+              - generic [ref=e410]: Administrador
+            - generic [ref=e412]: UH
+            - img [ref=e415]
+      - complementary [ref=e417]:
+        - button "Colapsar sidebar" [ref=e418] [cursor=pointer]:
+          - img [ref=e419]
+        - navigation [ref=e421]:
+          - generic [ref=e422]:
+            - generic [ref=e423]: Principal
+            - generic [ref=e424]:
+              - link "Resumen" [ref=e425] [cursor=pointer]:
+                - /url: /admin
+                - img [ref=e426]
+                - generic [ref=e428]: Resumen
+              - link "Usuarios" [ref=e430] [cursor=pointer]:
+                - /url: /admin/usuarios
+                - img [ref=e431]
+                - generic [ref=e433]: Usuarios
+              - link "Mensajes" [ref=e434] [cursor=pointer]:
+                - /url: /admin/mensajes
+                - img [ref=e435]
+                - generic [ref=e437]: Mensajes
+          - generic [ref=e438]:
+            - generic [ref=e439]: Sistema
+            - generic [ref=e440]:
+              - link "Roles y Permisos" [ref=e441] [cursor=pointer]:
+                - /url: /admin/roles
+                - img [ref=e442]
+                - generic [ref=e444]: Roles y Permisos
+              - link "Analíticas" [ref=e445] [cursor=pointer]:
+                - /url: /admin/analiticas
+                - img [ref=e446]
+                - generic [ref=e448]: Analíticas
+      - main [ref=e449]:
+        - generic [ref=e452]:
+          - generic [ref=e453]:
+            - generic [ref=e454]:
+              - heading "Panel de Administración" [level=1] [ref=e455]
+              - paragraph [ref=e456]: lunes, 8 de junio de 2026
+            - generic [ref=e458]: Sistema Operativo
+          - generic [ref=e460]:
+            - generic [ref=e461]:
+              - img [ref=e463]
+              - generic [ref=e465]:
+                - paragraph [ref=e466]: Total Usuarios
+                - paragraph [ref=e467]: "25"
+            - generic [ref=e469]:
+              - img [ref=e471]
+              - generic [ref=e473]:
+                - paragraph [ref=e474]: Usuarios Activos
+                - paragraph [ref=e475]: "25"
+            - generic [ref=e477]:
+              - img [ref=e479]
+              - generic [ref=e481]:
+                - paragraph [ref=e482]: Contactos Sin Revisar
+                - paragraph [ref=e483]: "0"
+            - generic [ref=e485]:
+              - img [ref=e487]
+              - generic [ref=e489]:
+                - paragraph [ref=e490]: Uptime Sistema
+                - paragraph [ref=e491]: 99.8%
+              - generic [ref=e492]: ▲ estable
+          - generic [ref=e493]:
+            - generic [ref=e495]:
+              - heading "Crecimiento de Usuarios" [level=3] [ref=e496]
+              - generic [ref=e497]: Últimos 6 meses
+            - generic [ref=e501]:
+              - heading "Actividad del Sistema" [level=3] [ref=e502]
+              - generic [ref=e503]: Últimos 7 días
+          - generic [ref=e506]:
+            - generic [ref=e507]:
+              - generic [ref=e508]:
+                - heading "Actividad Reciente" [level=3] [ref=e509]
+                - link "Ver todos" [ref=e510] [cursor=pointer]:
+                  - /url: /admin/analiticas
+              - generic [ref=e511]:
+                - generic [ref=e512]:
+                  - generic [ref=e513]: SI
+                  - generic [ref=e514]:
+                    - paragraph [ref=e515]: Sistema
+                    - paragraph [ref=e516]: Backup automático completado
+                  - generic [ref=e517]: Hace 1h
+                - generic [ref=e518]:
+                  - generic [ref=e519]: SI
+                  - generic [ref=e520]:
+                    - paragraph [ref=e521]: Sistema
+                    - paragraph [ref=e522]: Datos de analíticas actualizados
+                  - generic [ref=e523]: Ahora
+            - generic [ref=e524]:
+              - heading "Accesos Rápidos" [level=3] [ref=e526]
+              - generic [ref=e527]:
+                - link "Ver Usuarios" [ref=e528] [cursor=pointer]:
+                  - /url: /admin/usuarios
+                  - img [ref=e530]
+                  - generic [ref=e532]: Ver Usuarios
+                - link "Mensajes" [ref=e533] [cursor=pointer]:
+                  - /url: /admin/mensajes
+                  - img [ref=e535]
+                  - generic [ref=e537]: Mensajes
+                - link "Gestionar Roles" [ref=e538] [cursor=pointer]:
+                  - /url: /admin/roles
+                  - img [ref=e540]
+                  - generic [ref=e542]: Gestionar Roles
+                - link "Ver Analíticas" [ref=e543] [cursor=pointer]:
+                  - /url: /admin/analiticas
+                  - img [ref=e545]
+                  - generic [ref=e547]: Ver Analíticas
+  - generic [ref=e548]:
+    - generic "¡Login exitoso!" [ref=e549]
+    - alert "Bienvenido, HoneyBalance" [ref=e550]

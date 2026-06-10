@@ -1,0 +1,68 @@
+- main [ref=e4]:
+  - generic [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - img "HoneyBalance Logo" [ref=e12]
+        - generic [ref=e13]:
+          - heading "HoneyBalance" [level=1] [ref=e14]
+          - generic [ref=e15]: Administración ✦
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - button "Cambiar a modo oscuro" [ref=e18] [cursor=pointer]:
+            - img [ref=e19]
+          - button "Cambiar idioma" [ref=e21] [cursor=pointer]:
+            - img [ref=e22]
+          - button "Notificaciones" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+        - generic [ref=e28] [cursor=pointer]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: HoneyBalance
+            - generic [ref=e31]: Administrador
+          - generic [ref=e33]: HO
+          - img [ref=e36]
+    - complementary [ref=e38]:
+      - button "Colapsar sidebar" [ref=e39] [cursor=pointer]:
+        - img [ref=e40]
+      - navigation [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]: Principal
+          - generic [ref=e45]:
+            - link "Resumen" [ref=e46] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e47]
+              - generic [ref=e49]: Resumen
+            - link "Usuarios" [ref=e50] [cursor=pointer]:
+              - /url: /admin/usuarios
+              - img [ref=e51]
+              - generic [ref=e53]: Usuarios
+            - link "Mensajes" [ref=e54] [cursor=pointer]:
+              - /url: /admin/mensajes
+              - img [ref=e55]
+              - generic [ref=e57]: Mensajes
+        - generic [ref=e59]:
+          - generic [ref=e60]: Sistema
+          - generic [ref=e61]:
+            - link "Roles y Permisos" [ref=e62] [cursor=pointer]:
+              - /url: /admin/roles
+              - img [ref=e63]
+              - generic [ref=e65]: Roles y Permisos
+            - link "Analíticas" [ref=e66] [cursor=pointer]:
+              - /url: /admin/analiticas
+              - img [ref=e67]
+              - generic [ref=e69]: Analíticas
+    - main [ref=e70]:
+      - generic [ref=e73]:
+        - generic [ref=e75]:
+          - heading "Centro de Mensajes" [level=1] [ref=e76]
+          - paragraph [ref=e77]: Reportes, recomendaciones y contacto de usuarios
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - generic [ref=e80]:
+              - button "Todos" [ref=e81] [cursor=pointer]
+              - button "Pendientes" [ref=e82] [cursor=pointer]
+              - button "Leídos" [ref=e83] [cursor=pointer]
+              - button "Respondidos" [ref=e84] [cursor=pointer]
+            - generic [ref=e86]: Cargando mensajes…
+          - generic [ref=e87]:
+            - img [ref=e88]
+            - paragraph [ref=e90]: Selecciona un mensaje para ver el detalle y responder

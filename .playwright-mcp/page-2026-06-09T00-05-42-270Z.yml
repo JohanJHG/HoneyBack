@@ -1,0 +1,208 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "HoneyBalance Logo" [ref=e9]
+        - generic [ref=e10]: HoneyBalance
+      - navigation "Navegación principal" [ref=e11]:
+        - button "Inicio" [ref=e12] [cursor=pointer]: Inicio
+        - button "Reportes" [ref=e13] [cursor=pointer]: Reportes
+        - button "Contacto" [ref=e14] [cursor=pointer]: Contacto
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - img [ref=e17]
+          - generic [ref=e19]: HoneyBalance
+        - button "Dashboard" [ref=e20] [cursor=pointer]
+        - button "Contraseña" [ref=e21] [cursor=pointer]
+        - button "Salir" [ref=e22] [cursor=pointer]
+  - main [ref=e23]:
+    - generic [ref=e25]:
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - heading "Finanzas simples, decisiones inteligentes" [level=1] [ref=e33]
+          - paragraph [ref=e34]: Organiza tus ingresos, gastos e inventario con facilidad. HoneyBalance simplifica tus números para que te enfoques en crecer.
+        - generic [ref=e35]:
+          - button "Usar ahora" [ref=e37] [cursor=pointer]:
+            - text: Usar ahora
+            - img [ref=e38]
+          - button "Ver cómo funciona" [ref=e41] [cursor=pointer]
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - heading "Mis Gastos" [level=1] [ref=e48]
+          - paragraph [ref=e49]: Registro de todos tus movimientos personales. Lleva el control total de ingresos y gastos con filtros inteligentes, búsqueda instantánea y estadísticas en tiempo real.
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - img [ref=e53]
+              - generic [ref=e55]:
+                - heading "Búsqueda Instantánea" [level=4] [ref=e56]
+                - paragraph [ref=e57]: Encuentra cualquier movimiento por nombre, fecha o categoría al instante.
+            - generic [ref=e58]:
+              - img [ref=e60]
+              - generic [ref=e62]:
+                - heading "Filtros Inteligentes" [level=4] [ref=e63]
+                - paragraph [ref=e64]: Filtra por tipo (gasto / ingreso) y categoría para un control total.
+            - generic [ref=e65]:
+              - img [ref=e67]
+              - generic [ref=e69]:
+                - heading "KPIs en Tiempo Real" [level=4] [ref=e70]
+                - paragraph [ref=e71]: Visualiza totales de gastos, ingresos y diferencia de un solo vistazo.
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - heading "Mis Gastos" [level=3] [ref=e77]
+              - paragraph [ref=e78]: Registro de todos tus movimientos personales
+            - button "Agregar movimiento" [ref=e79] [cursor=pointer]:
+              - img [ref=e80]
+              - text: Agregar movimiento
+          - generic [ref=e82]:
+            - generic [ref=e83]:
+              - img [ref=e85]
+              - generic [ref=e87]:
+                - paragraph [ref=e88]: Total gastos
+                - paragraph [ref=e89]: $2,350,000
+            - generic [ref=e90]:
+              - img [ref=e92]
+              - generic [ref=e94]:
+                - paragraph [ref=e95]: Total ingresos
+                - paragraph [ref=e96]: $5,800,000
+            - generic [ref=e97]:
+              - img [ref=e99]
+              - generic [ref=e101]:
+                - paragraph [ref=e102]: Diferencia
+                - paragraph [ref=e103]: $3,450,000
+            - generic [ref=e104]:
+              - img [ref=e106]
+              - generic [ref=e108]:
+                - paragraph [ref=e109]: Movimientos
+                - paragraph [ref=e110]: "24"
+          - generic [ref=e111]:
+            - button "Buscar movimiento..." [ref=e112] [cursor=pointer]:
+              - img [ref=e113]
+              - generic [ref=e115]: Buscar movimiento...
+            - generic [ref=e116]:
+              - button "Todos" [pressed] [ref=e117] [cursor=pointer]
+              - button "Ingresos" [ref=e118] [cursor=pointer]
+              - button "Gastos" [ref=e119] [cursor=pointer]
+          - generic [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]:
+                - img [ref=e124]
+                - generic [ref=e126]:
+                  - paragraph [ref=e127]: Nómina Mayo
+                  - paragraph [ref=e128]: 01 May ·Nómina
+              - generic [ref=e129]:
+                - generic [ref=e130]: +$4,800,000
+                - generic [ref=e131]:
+                  - button "Editar movimiento" [ref=e132] [cursor=pointer]:
+                    - img [ref=e133]
+                  - button "Eliminar movimiento" [ref=e136] [cursor=pointer]:
+                    - img [ref=e137]
+            - generic [ref=e139]:
+              - generic [ref=e140]:
+                - img [ref=e142]
+                - generic [ref=e144]:
+                  - paragraph [ref=e145]: Supermercado Éxito
+                  - paragraph [ref=e146]: 03 May ·Alimentación
+              - generic [ref=e147]:
+                - generic [ref=e148]: "-$185,000"
+                - generic [ref=e149]:
+                  - button "Editar movimiento" [ref=e150] [cursor=pointer]:
+                    - img [ref=e151]
+                  - button "Eliminar movimiento" [ref=e154] [cursor=pointer]:
+                    - img [ref=e155]
+            - generic [ref=e157]:
+              - generic [ref=e158]:
+                - img [ref=e160]
+                - generic [ref=e162]:
+                  - paragraph [ref=e163]: Netflix
+                  - paragraph [ref=e164]: 05 May ·Entretenimiento
+              - generic [ref=e165]:
+                - generic [ref=e166]: "-$47,000"
+                - generic [ref=e167]:
+                  - button "Editar movimiento" [ref=e168] [cursor=pointer]:
+                    - img [ref=e169]
+                  - button "Eliminar movimiento" [ref=e172] [cursor=pointer]:
+                    - img [ref=e173]
+            - generic [ref=e175]:
+              - generic [ref=e176]:
+                - img [ref=e178]
+                - generic [ref=e180]:
+                  - paragraph [ref=e181]: Gasolina Terpel
+                  - paragraph [ref=e182]: 07 May ·Transporte
+              - generic [ref=e183]:
+                - generic [ref=e184]: "-$130,000"
+                - generic [ref=e185]:
+                  - button "Editar movimiento" [ref=e186] [cursor=pointer]:
+                    - img [ref=e187]
+                  - button "Eliminar movimiento" [ref=e190] [cursor=pointer]:
+                    - img [ref=e191]
+            - generic [ref=e193]:
+              - generic [ref=e194]:
+                - img [ref=e196]
+                - generic [ref=e198]:
+                  - paragraph [ref=e199]: Proyecto Freelance
+                  - paragraph [ref=e200]: 10 May ·Nómina
+              - generic [ref=e201]:
+                - generic [ref=e202]: +$1,200,000
+                - generic [ref=e203]:
+                  - button "Editar movimiento" [ref=e204] [cursor=pointer]:
+                    - img [ref=e205]
+                  - button "Eliminar movimiento" [ref=e208] [cursor=pointer]:
+                    - img [ref=e209]
+            - generic [ref=e211]:
+              - generic [ref=e212]:
+                - img [ref=e214]
+                - generic [ref=e216]:
+                  - paragraph [ref=e217]: Restaurante El Portal
+                  - paragraph [ref=e218]: 12 May ·Alimentación
+              - generic [ref=e219]:
+                - generic [ref=e220]: "-$95,000"
+                - generic [ref=e221]:
+                  - button "Editar movimiento" [ref=e222] [cursor=pointer]:
+                    - img [ref=e223]
+                  - button "Eliminar movimiento" [ref=e226] [cursor=pointer]:
+                    - img [ref=e227]
+            - generic [ref=e229]:
+              - generic [ref=e230]:
+                - img [ref=e232]
+                - generic [ref=e234]:
+                  - paragraph [ref=e235]: Gimnasio Smart Fit
+                  - paragraph [ref=e236]: 15 May ·Salud
+              - generic [ref=e237]:
+                - generic [ref=e238]: "-$85,000"
+                - generic [ref=e239]:
+                  - button "Editar movimiento" [ref=e240] [cursor=pointer]:
+                    - img [ref=e241]
+                  - button "Eliminar movimiento" [ref=e244] [cursor=pointer]:
+                    - img [ref=e245]
+          - generic [ref=e247]:
+            - paragraph [ref=e248]: 7 de 24 movimientos
+            - button "Ver todos →" [ref=e249] [cursor=pointer]
+  - contentinfo [ref=e253]:
+    - generic [ref=e254]:
+      - generic [ref=e255]:
+        - generic [ref=e256]:
+          - generic [ref=e257]:
+            - img "HoneyBalance Logo" [ref=e259]
+            - generic [ref=e260]: HoneyBalance
+          - paragraph [ref=e261]: La plataforma de finanzas más simple e intuitiva para uso personal y pequeños emprendimientos.
+        - generic [ref=e262]:
+          - heading "Reportes" [level=4] [ref=e263]
+          - paragraph [ref=e264]: ¿Encontraste un problema o tienes una idea?
+          - button "Reportes y bugs" [ref=e265] [cursor=pointer]
+        - generic [ref=e266]:
+          - heading "Contacto" [level=4] [ref=e267]
+          - list [ref=e268]:
+            - listitem [ref=e269]:
+              - img [ref=e270]
+              - generic [ref=e273]: soporte@honeybalance.online
+          - button "Contáctanos" [ref=e274] [cursor=pointer]
+      - generic [ref=e276]:
+        - paragraph [ref=e277]: © 2026 HoneyBalance. Todos los derechos reservados.
+        - generic [ref=e278]:
+          - link "Política de privacidad" [ref=e279] [cursor=pointer]:
+            - /url: "#"
+          - link "Términos de servicio" [ref=e280] [cursor=pointer]:
+            - /url: "#"
+          - link "Cookies" [ref=e281] [cursor=pointer]:
+            - /url: "#"

@@ -1,0 +1,98 @@
+name: Build & Deploy Analytics
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'honeyanalytics/**'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/honeybalance-analytics
+
+jobs:
+  build-and-push:
+    name: Build & Push imagen Docker
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3.10.0
+
+      - name: Login a GitHub Container Registry
+        uses: docker/login-action@v3.4.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Metadata de la imagen
+        id: meta
+        uses: docker/metadata-action@v5.7.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build y Push
+        uses: docker/build-push-action@v6.15.0
+        with:
+          context: ./honeyanalytics
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy al Droplet
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment: production
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/honeybalance
+
+            docker compose pull honeyanalytics
+            docker compose up -d --no-deps honeyanalytics
+            docker image prune -f
+
+            echo "Deploy de analytics completado"
+            docker compose ps
+
+      - name: Verificar health de analytics
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            echo "Esperando inicializacion del servicio de analytics..."
+            sleep 40
+
+            HEALTH=$(docker inspect --format='{{.State.Health.Status}}' honeyanalytics 2>/dev/null || echo "unknown")
+            echo "Docker health status: $HEALTH"
+
+            if [ "$HEALTH" = "healthy" ]; then
+              echo "Analytics OK — health check pasado"
+            else
+              echo "ADVERTENCIA — Analytics status: $HEALTH. Logs recientes:"
+              docker compose logs honeyanalytics --tail=30
+            fi

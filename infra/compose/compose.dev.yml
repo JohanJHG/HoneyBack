@@ -1,10 +1,4 @@
 services:
-  sqlserver:
-    ports:
-      - "1434:1433"
-    volumes:
-      - ../../backups:/var/opt/mssql/backup
-
   honeyback_api:
     build:
       context: ../..
@@ -15,6 +9,14 @@ services:
       Swagger__Enabled: true
       Database__ApplyMigrationsAtStartup: true
       Cors__AllowedOriginsCsv: http://localhost:4200,http://localhost:4201,http://localhost:3000
+      ConnectionStrings__conexion: ${API_DATABASE_URL}
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: ${JWT_ISSUER:-HoneyBack}
+      Jwt__Audience: ${JWT_AUDIENCE:-HoneyBack}
+      Jwt__ExpiresInMinutes: ${JWT_EXPIRES_MINUTES:-60}
+      Resend__ApiKey: ${RESEND_API_KEY}
+      Resend__FromEmail: ${RESEND_FROM_EMAIL:-soporte@honeybalance.online}
+      Resend__FromName: ${RESEND_FROM_NAME:-HoneyBalance}
     ports:
       - "5291:80"
 
@@ -25,3 +27,17 @@ services:
     image: honeybalance_web:dev
     ports:
       - "4200:80"
+
+  honeyanalytics:
+    build:
+      context: ../../honeyanalytics
+      dockerfile: Dockerfile
+    image: honeyanalytics:dev
+    environment:
+      RELOAD: "true"
+      DATABASE_URL: ${ANALYTICS_DATABASE_URL}
+      JWT_SECRET: ${JWT_KEY}
+      JWT_ISSUER: ${JWT_ISSUER:-HoneyBack}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-HoneyBack}
+    ports:
+      - "8000:8000"

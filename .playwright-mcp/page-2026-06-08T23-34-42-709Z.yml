@@ -1,0 +1,108 @@
+- main [ref=e4]:
+  - generic [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - img "HoneyBalance Logo" [ref=e12]
+        - generic [ref=e13]:
+          - heading "HoneyBalance" [level=1] [ref=e14]
+          - generic [ref=e15]: Administración ✦
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - button "Cambiar a modo oscuro" [ref=e18] [cursor=pointer]:
+            - img [ref=e19]
+          - button "Cambiar idioma" [ref=e21] [cursor=pointer]:
+            - img [ref=e22]
+          - button "Notificaciones" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+          - button "Abrir reportes y bugs" [ref=e28] [cursor=pointer]:
+            - generic [ref=e29]: Reportes y bugs
+          - button "Abrir contacto" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31]: Contáctanos
+        - generic [ref=e32] [cursor=pointer]:
+          - generic [ref=e33]:
+            - generic [ref=e34]: Usuario HoneyBalance
+            - generic [ref=e35]: Administrador
+          - generic [ref=e37]: UH
+    - complementary [ref=e38]:
+      - button "Colapsar sidebar" [ref=e39] [cursor=pointer]:
+        - img [ref=e40]
+      - navigation [ref=e42]:
+        - generic [ref=e43]:
+          - generic [ref=e44]: Principal
+          - generic [ref=e45]:
+            - link "Resumen" [ref=e46] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e47]
+              - generic [ref=e49]: Resumen
+            - link "Usuarios" [ref=e50] [cursor=pointer]:
+              - /url: /admin/usuarios
+              - img [ref=e51]
+              - generic [ref=e53]: Usuarios
+            - link "Mensajes" [ref=e54] [cursor=pointer]:
+              - /url: /admin/mensajes
+              - img [ref=e55]
+              - generic [ref=e57]: Mensajes
+        - generic [ref=e58]:
+          - generic [ref=e59]: Sistema
+          - generic [ref=e60]:
+            - link "Roles y Permisos" [ref=e61] [cursor=pointer]:
+              - /url: /admin/roles
+              - img [ref=e62]
+              - generic [ref=e64]: Roles y Permisos
+            - link "Analíticas" [ref=e65] [cursor=pointer]:
+              - /url: /admin/analiticas
+              - img [ref=e66]
+              - generic [ref=e68]: Analíticas
+    - main [ref=e70]:
+      - generic [ref=e73]:
+        - generic [ref=e75]:
+          - heading "Analíticas" [level=1] [ref=e76]
+          - paragraph [ref=e77]: Métricas de uso y registros de actividad del sistema
+        - generic [ref=e78]:
+          - button "Métricas" [ref=e79] [cursor=pointer]:
+            - img [ref=e80]
+            - text: Métricas
+          - button "Logs de Auditoría" [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+            - text: Logs de Auditoría
+        - generic [ref=e85]:
+          - generic [ref=e86]:
+            - generic [ref=e87]:
+              - img [ref=e89]
+              - generic [ref=e91]:
+                - paragraph [ref=e92]: MAU
+                - paragraph [ref=e93]: —
+                - paragraph [ref=e94]: Usuarios activos al mes
+            - generic [ref=e95]:
+              - img [ref=e97]
+              - generic [ref=e99]:
+                - paragraph [ref=e100]: DAU
+                - paragraph [ref=e101]: —
+                - paragraph [ref=e102]: Usuarios activos al día
+            - generic [ref=e103]:
+              - img [ref=e105]
+              - generic [ref=e107]:
+                - paragraph [ref=e108]: Churn Rate
+                - paragraph [ref=e109]: —
+                - paragraph [ref=e110]: Usuarios perdidos / mes
+            - generic [ref=e111]:
+              - img [ref=e113]
+              - generic [ref=e115]:
+                - paragraph [ref=e116]: Avg Session
+                - paragraph [ref=e117]: —
+                - paragraph [ref=e118]: Tiempo promedio de sesión
+          - generic [ref=e119]:
+            - generic [ref=e121]:
+              - heading "Retención de Usuarios" [level=3] [ref=e122]
+              - generic [ref=e123]: Últimos 12 meses
+            - generic [ref=e126]:
+              - generic [ref=e127]:
+                - heading "Uso por Módulo" [level=3] [ref=e128]
+                - generic [ref=e129]: Personal vs Empresarial
+              - generic [ref=e132]:
+                - generic [ref=e133]:
+                  - generic [ref=e135]: Personal
+                  - strong [ref=e136]: 68%
+                - generic [ref=e137]:
+                  - generic [ref=e139]: Empresarial
+                  - strong [ref=e140]: 32%

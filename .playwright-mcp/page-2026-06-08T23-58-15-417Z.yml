@@ -1,0 +1,46 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "HoneyBalance Logo" [ref=e9]
+        - generic [ref=e10]: HoneyBalance
+      - navigation "Navegación principal" [ref=e11]:
+        - button "Inicio" [ref=e12] [cursor=pointer]: Inicio
+        - button "Reportes" [ref=e13] [cursor=pointer]: Reportes
+        - button "Contacto" [ref=e14] [cursor=pointer]: Contacto
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - img [ref=e17]
+          - generic [ref=e19]: HoneyBalance
+        - button "Dashboard" [ref=e20] [cursor=pointer]
+        - button "Contraseña" [ref=e21] [cursor=pointer]
+        - button "Salir" [ref=e22] [cursor=pointer]
+  - main [ref=e23]
+  - contentinfo [ref=e25]:
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - img "HoneyBalance Logo" [ref=e31]
+            - generic [ref=e32]: HoneyBalance
+          - paragraph [ref=e33]: La plataforma de finanzas más simple e intuitiva para uso personal y pequeños emprendimientos.
+        - generic [ref=e34]:
+          - heading "Reportes" [level=4] [ref=e35]
+          - paragraph [ref=e36]: ¿Encontraste un problema o tienes una idea?
+          - button "Reportes y bugs" [ref=e37] [cursor=pointer]
+        - generic [ref=e38]:
+          - heading "Contacto" [level=4] [ref=e39]
+          - list [ref=e40]:
+            - listitem [ref=e41]:
+              - img [ref=e42]
+              - generic [ref=e45]: soporte@honeybalance.online
+          - button "Contáctanos" [ref=e46] [cursor=pointer]
+      - generic [ref=e48]:
+        - paragraph [ref=e49]: © 2026 HoneyBalance. Todos los derechos reservados.
+        - generic [ref=e50]:
+          - link "Política de privacidad" [ref=e51] [cursor=pointer]:
+            - /url: "#"
+          - link "Términos de servicio" [ref=e52] [cursor=pointer]:
+            - /url: "#"
+          - link "Cookies" [ref=e53] [cursor=pointer]:
+            - /url: "#"

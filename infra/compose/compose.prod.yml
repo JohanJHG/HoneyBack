@@ -1,8 +1,4 @@
 services:
-  sqlserver:
-    environment:
-      MSSQL_PID: ${MSSQL_PID:-Standard}
-
   honeyback_api:
     image: ${HONEYBACK_API_IMAGE}
     environment:
@@ -15,3 +11,6 @@ services:
     image: ${HONEYBALANCE_WEB_IMAGE}
     ports:
       - "80:80"
+
+  honeyanalytics:
+    image: ${HONEYANALYTICS_IMAGE}

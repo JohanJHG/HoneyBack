@@ -50,6 +50,7 @@ builder.Services.AddScoped<IMetasAhorroService, MetasAhorroService>();
 builder.Services.AddScoped<IConfiguracionesUsuarioService, ConfiguracionesUsuarioService>();
 builder.Services.AddScoped<ITransaccionesService, TransaccionesService>();
 builder.Services.AddScoped<IEntornosPersonalesService, EntornosPersonalesService>();
+builder.Services.AddScoped<IAdminService, AdminService>();
 // JWT Token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
@@ -141,6 +142,10 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("SuperAdmin", policy =>
         policy.RequireRole(HoneyBack.Models.RolUsuario.SuperAdmin.ToString()));
+    options.AddPolicy("AdminOrSuperAdmin", policy =>
+        policy.RequireRole(
+            HoneyBack.Models.RolUsuario.SuperAdmin.ToString(),
+            HoneyBack.Models.RolUsuario.Administrador.ToString()));
 });
 
 // Rate limiting: 5 intentos / 5 min por IP en auth, 100 req / min en API general
@@ -361,6 +366,14 @@ static string NormalizeNpgsqlConnectionString(string inputConnectionString)
     if (sanitized.StartsWith("<", StringComparison.Ordinal) && sanitized.EndsWith(">", StringComparison.Ordinal))
     {
         sanitized = sanitized[1..^1].Trim();
+    }
+
+    // Strip SQLAlchemy driver qualifier (e.g. +asyncpg) so postgresql+asyncpg:// → postgresql://
+    if (sanitized.StartsWith("postgresql+", StringComparison.OrdinalIgnoreCase))
+    {
+        var schemeEnd = sanitized.IndexOf("://");
+        if (schemeEnd > 0)
+            sanitized = "postgresql" + sanitized[schemeEnd..];
     }
 
     var isPostgresUri =

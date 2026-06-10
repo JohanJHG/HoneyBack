@@ -1,0 +1,84 @@
+- main [ref=e4]:
+  - generic [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - img "HoneyBalance Logo" [ref=e12]
+        - generic [ref=e13]:
+          - heading "HoneyBalance" [level=1] [ref=e14]
+          - generic [ref=e15]: Administración ✦
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - button "Cambiar a modo oscuro" [ref=e18] [cursor=pointer]:
+            - img [ref=e19]
+          - button "Cambiar idioma" [ref=e21] [cursor=pointer]:
+            - img [ref=e22]
+          - button "Notificaciones" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+        - generic [ref=e28] [cursor=pointer]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: HoneyBalance
+            - generic [ref=e31]: Administrador
+          - generic [ref=e33]: HO
+    - complementary [ref=e34]:
+      - button "Colapsar sidebar" [ref=e35] [cursor=pointer]:
+        - img [ref=e36]
+      - navigation [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]: Principal
+          - generic [ref=e41]:
+            - link "Resumen" [ref=e42] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e43]
+              - generic [ref=e45]: Resumen
+            - link "Usuarios" [ref=e46] [cursor=pointer]:
+              - /url: /admin/usuarios
+              - img [ref=e47]
+              - generic [ref=e49]: Usuarios
+            - link "Mensajes" [ref=e51] [cursor=pointer]:
+              - /url: /admin/mensajes
+              - img [ref=e52]
+              - generic [ref=e54]: Mensajes
+        - generic [ref=e55]:
+          - generic [ref=e56]: Sistema
+          - generic [ref=e57]:
+            - link "Roles y Permisos" [ref=e58] [cursor=pointer]:
+              - /url: /admin/roles
+              - img [ref=e59]
+              - generic [ref=e61]: Roles y Permisos
+            - link "Analíticas" [ref=e62] [cursor=pointer]:
+              - /url: /admin/analiticas
+              - img [ref=e63]
+              - generic [ref=e65]: Analíticas
+    - main [ref=e66]:
+      - generic [ref=e69]:
+        - generic [ref=e71]:
+          - heading "Gestión de Usuarios" [level=1] [ref=e72]
+          - paragraph [ref=e73]: Administra las cuentas y accesos del sistema
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - img
+            - textbox "Buscar por nombre o email..." [ref=e76]
+          - combobox [ref=e77] [cursor=pointer]:
+            - option "Todos los estados" [selected]
+            - option "Activos"
+            - option "Inactivos"
+        - table [ref=e79]:
+          - rowgroup [ref=e80]:
+            - row "Usuario Email Fecha Registro Rol Estado" [ref=e81]:
+              - columnheader "Usuario" [ref=e82]
+              - columnheader "Email" [ref=e83]
+              - columnheader "Fecha Registro" [ref=e84]
+              - columnheader "Rol" [ref=e85]
+              - columnheader "Estado" [ref=e86]
+              - columnheader [ref=e87]
+          - rowgroup [ref=e88]:
+            - row "No se encontraron usuarios con ese criterio." [ref=e89]:
+              - cell "No se encontraron usuarios con ese criterio." [ref=e90]
+        - generic [ref=e91]:
+          - generic [ref=e92]: 0 usuarios en total
+          - generic [ref=e93]:
+            - button [disabled] [ref=e94]:
+              - img [ref=e95]
+            - button "1" [ref=e97] [cursor=pointer]
+            - button [disabled] [ref=e98]:
+              - img [ref=e99]
