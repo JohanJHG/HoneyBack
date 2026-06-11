@@ -17,5 +17,8 @@ namespace HoneyBack.DTOs.Auth
         [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres")]
         [MaxLength(100, ErrorMessage = "La contraseña no puede exceder 100 caracteres")]
         public string Password { get; set; } = null!;
+
+        [Required(ErrorMessage = "El reCAPTCHA es requerido")]
+        public string RecaptchaToken { get; set; } = null!;
     }
 }

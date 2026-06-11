@@ -52,6 +52,9 @@ builder.Services.AddScoped<ITransaccionesService, TransaccionesService>();
 builder.Services.AddScoped<IEntornosPersonalesService, EntornosPersonalesService>();
 // JWT Token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+// reCAPTCHA validation service
+builder.Services.AddHttpClient<IRecaptchaService, RecaptchaService>();
+builder.Services.AddScoped<IRecaptchaService, RecaptchaService>();
 
 // Configurar Resend para env�o de emails
 var resendApiKey = builder.Configuration["Resend:ApiKey"];

@@ -21,6 +21,7 @@ namespace HoneyBack.Controllers
         private readonly ISesionesService _sesionesService;
         private readonly IJwtTokenService _jwtTokenService;
         private readonly IEmailService _emailService;
+        private readonly IRecaptchaService _recaptchaService;
         private readonly HoneyBalanceDbContext _context;
         private readonly ILogger<AuthController> _logger;
         private readonly IWebHostEnvironment _env;
@@ -34,6 +35,7 @@ namespace HoneyBack.Controllers
             ISesionesService sesionesService,
             IJwtTokenService jwtTokenService,
             IEmailService emailService,
+            IRecaptchaService recaptchaService,
             HoneyBalanceDbContext context,
             ILogger<AuthController> logger,
             IWebHostEnvironment env,
@@ -43,6 +45,7 @@ namespace HoneyBack.Controllers
             _sesionesService = sesionesService;
             _jwtTokenService = jwtTokenService;
             _emailService = emailService;
+            _recaptchaService = recaptchaService;
             _context = context;
             _logger = logger;
             _env = env;
@@ -158,6 +161,13 @@ namespace HoneyBack.Controllers
                 return BadRequest(new { message = ObtenerPrimerError(ModelState) });
 
             var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+            var captchaValido = await _recaptchaService.ValidarTokenAsync(request.RecaptchaToken);
+            if (!captchaValido)
+            {
+                _logger.LogWarning("Registro rechazado: reCAPTCHA inválido ip={IP}", ip);
+                return BadRequest(new { message = "Verificación reCAPTCHA fallida. Intenta de nuevo." });
+            }
 
             if (!IsValidEmail(request.Email))
                 return BadRequest(new { message = "El formato del email no es válido" });
