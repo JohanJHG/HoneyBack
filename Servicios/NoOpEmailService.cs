@@ -29,4 +29,12 @@ public class NoOpEmailService : IEmailService
             fromEmail, fromName);
         return Task.FromResult(true);
     }
+
+    public Task<bool> SendAdminReplyAsync(string toEmail, string toName, string asunto, string cuerpo)
+    {
+        _logger.LogWarning(
+            "[NoOpEmailService] Respuesta admin NO enviada (API key no configurada). To={ToEmail} Asunto={Asunto}",
+            toEmail, asunto);
+        return Task.FromResult(true);
+    }
 }

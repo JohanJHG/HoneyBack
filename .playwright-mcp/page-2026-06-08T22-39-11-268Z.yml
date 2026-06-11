@@ -1,0 +1,170 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - img "HoneyBalance Logo" [ref=e9]
+        - generic [ref=e10]: HoneyBalance
+      - navigation "Navegación principal" [ref=e11]:
+        - button "Inicio" [ref=e12] [cursor=pointer]: Inicio
+        - button "Reportes" [ref=e13] [cursor=pointer]: Reportes
+        - button "Contacto" [ref=e14] [cursor=pointer]: Contacto
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - img [ref=e17]
+          - generic [ref=e19]: HoneyBalance
+        - button "Dashboard" [ref=e20] [cursor=pointer]
+        - button "Contraseña" [ref=e21] [cursor=pointer]
+        - button "Salir" [ref=e22] [cursor=pointer]
+  - main [ref=e23]:
+    - generic [ref=e25]:
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - img "HoneyBalance Logo" [ref=e31]
+          - generic [ref=e32]:
+            - heading "HoneyBalance" [level=1] [ref=e33]
+            - generic [ref=e34]: Administración ✦
+        - generic [ref=e35]:
+          - generic [ref=e36]:
+            - button "Cambiar a modo oscuro" [ref=e37] [cursor=pointer]:
+              - img [ref=e38]
+            - button "Cambiar idioma" [ref=e40] [cursor=pointer]:
+              - img [ref=e41]
+            - button "Notificaciones" [ref=e43] [cursor=pointer]:
+              - img [ref=e44]
+            - button "Abrir reportes y bugs" [ref=e47] [cursor=pointer]:
+              - generic [ref=e48]: Reportes y bugs
+            - button "Abrir contacto" [ref=e49] [cursor=pointer]:
+              - generic [ref=e50]: Contáctanos
+          - generic [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]:
+              - generic [ref=e53]: Usuario HoneyBalance
+              - generic [ref=e54]: Administrador
+            - generic [ref=e56]: UH
+      - complementary [ref=e57]:
+        - button "Colapsar sidebar" [ref=e58] [cursor=pointer]:
+          - img [ref=e59]
+        - navigation [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]: Principal
+            - generic [ref=e64]:
+              - link "Resumen" [ref=e65] [cursor=pointer]:
+                - /url: /admin
+                - img [ref=e66]
+                - generic [ref=e68]: Resumen
+              - link "Usuarios" [ref=e70] [cursor=pointer]:
+                - /url: /admin/usuarios
+                - img [ref=e71]
+                - generic [ref=e73]: Usuarios
+          - generic [ref=e74]:
+            - generic [ref=e75]: Sistema
+            - generic [ref=e76]:
+              - link "Roles y Permisos" [ref=e77] [cursor=pointer]:
+                - /url: /admin/roles
+                - img [ref=e78]
+                - generic [ref=e80]: Roles y Permisos
+              - link "Analíticas" [ref=e81] [cursor=pointer]:
+                - /url: /admin/analiticas
+                - img [ref=e82]
+                - generic [ref=e84]: Analíticas
+      - main [ref=e85]:
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - generic [ref=e90]:
+              - heading "Panel de Administración" [level=1] [ref=e91]
+              - paragraph [ref=e92]: lunes, 8 de junio de 2026
+            - generic [ref=e94]: Sistema Operativo
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - img [ref=e99]
+              - generic [ref=e101]:
+                - paragraph [ref=e102]: Total Usuarios
+                - paragraph [ref=e103]: —
+            - generic [ref=e105]:
+              - img [ref=e107]
+              - generic [ref=e109]:
+                - paragraph [ref=e110]: Usuarios Activos
+                - paragraph [ref=e111]: —
+            - generic [ref=e113]:
+              - img [ref=e115]
+              - generic [ref=e117]:
+                - paragraph [ref=e118]: Contactos Sin Revisar
+                - paragraph [ref=e119]: —
+            - generic [ref=e121]:
+              - img [ref=e123]
+              - generic [ref=e125]:
+                - paragraph [ref=e126]: Uptime Sistema
+                - paragraph [ref=e127]: 99.8%
+              - generic [ref=e128]: ▲ estable
+          - generic [ref=e129]:
+            - generic [ref=e131]:
+              - heading "Crecimiento de Usuarios" [level=3] [ref=e132]
+              - generic [ref=e133]: Últimos 6 meses
+            - generic [ref=e137]:
+              - heading "Actividad del Sistema" [level=3] [ref=e138]
+              - generic [ref=e139]: Últimos 7 días
+          - generic [ref=e142]:
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - heading "Actividad Reciente" [level=3] [ref=e145]
+                - link "Ver todos" [ref=e146] [cursor=pointer]:
+                  - /url: /admin/analiticas
+              - generic [ref=e147]:
+                - generic [ref=e148]:
+                  - generic [ref=e149]: SI
+                  - generic [ref=e150]:
+                    - paragraph [ref=e151]: Sistema
+                    - paragraph [ref=e152]: Backup automático completado
+                  - generic [ref=e153]: Hace 1h
+                - generic [ref=e154]:
+                  - generic [ref=e155]: SI
+                  - generic [ref=e156]:
+                    - paragraph [ref=e157]: Sistema
+                    - paragraph [ref=e158]: Datos de analíticas actualizados
+                  - generic [ref=e159]: Ahora
+            - generic [ref=e160]:
+              - heading "Accesos Rápidos" [level=3] [ref=e162]
+              - generic [ref=e163]:
+                - link "Ver Usuarios" [ref=e164] [cursor=pointer]:
+                  - /url: /admin/usuarios
+                  - img [ref=e166]
+                  - generic [ref=e168]: Ver Usuarios
+                - link "Ver Analíticas" [ref=e169] [cursor=pointer]:
+                  - /url: /admin/analiticas
+                  - img [ref=e171]
+                  - generic [ref=e173]: Ver Analíticas
+                - link "Gestionar Roles" [ref=e174] [cursor=pointer]:
+                  - /url: /admin/roles
+                  - img [ref=e176]
+                  - generic [ref=e178]: Gestionar Roles
+                - link "Logs de Auditoría" [ref=e179] [cursor=pointer]:
+                  - /url: /admin/analiticas
+                  - img [ref=e181]
+                  - generic [ref=e183]: Logs de Auditoría
+  - contentinfo [ref=e185]:
+    - generic [ref=e186]:
+      - generic [ref=e187]:
+        - generic [ref=e188]:
+          - generic [ref=e189]:
+            - img "HoneyBalance Logo" [ref=e191]
+            - generic [ref=e192]: HoneyBalance
+          - paragraph [ref=e193]: La plataforma de finanzas más simple e intuitiva para uso personal y pequeños emprendimientos.
+        - generic [ref=e194]:
+          - heading "Reportes" [level=4] [ref=e195]
+          - paragraph [ref=e196]: ¿Encontraste un problema o tienes una idea?
+          - button "Reportes y bugs" [ref=e197] [cursor=pointer]
+        - generic [ref=e198]:
+          - heading "Contacto" [level=4] [ref=e199]
+          - list [ref=e200]:
+            - listitem [ref=e201]:
+              - img [ref=e202]
+              - generic [ref=e205]: soporte@honeybalance.online
+          - button "Contáctanos" [ref=e206] [cursor=pointer]
+      - generic [ref=e208]:
+        - paragraph [ref=e209]: © 2026 HoneyBalance. Todos los derechos reservados.
+        - generic [ref=e210]:
+          - link "Política de privacidad" [ref=e211] [cursor=pointer]:
+            - /url: "#"
+          - link "Términos de servicio" [ref=e212] [cursor=pointer]:
+            - /url: "#"
+          - link "Cookies" [ref=e213] [cursor=pointer]:
+            - /url: "#"

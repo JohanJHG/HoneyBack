@@ -1,0 +1,152 @@
+- main [ref=e4]:
+  - generic [ref=e6]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - img "HoneyBalance Logo" [ref=e12]
+        - generic [ref=e13]:
+          - heading "HoneyBalance" [level=1] [ref=e14]
+          - generic [ref=e15]: Administración ✦
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - button "Cambiar a modo oscuro" [ref=e18] [cursor=pointer]:
+            - img [ref=e19]
+          - button "Cambiar idioma" [ref=e21] [cursor=pointer]:
+            - img [ref=e22]
+          - button "Notificaciones" [ref=e24] [cursor=pointer]:
+            - img [ref=e25]
+        - generic [ref=e28] [cursor=pointer]:
+          - generic [ref=e29]:
+            - generic [ref=e30]: HoneyBalance
+            - generic [ref=e31]: Administrador
+          - generic [ref=e33]: HO
+          - img [ref=e89]
+    - complementary [ref=e34]:
+      - button "Colapsar sidebar" [ref=e35] [cursor=pointer]:
+        - img [ref=e36]
+      - navigation [ref=e38]:
+        - generic [ref=e39]:
+          - generic [ref=e40]: Principal
+          - generic [ref=e41]:
+            - link "Resumen" [ref=e42] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e43]
+              - generic [ref=e45]: Resumen
+            - link "Usuarios" [ref=e46] [cursor=pointer]:
+              - /url: /admin/usuarios
+              - img [ref=e47]
+              - generic [ref=e49]: Usuarios
+            - link "Mensajes" [ref=e50] [cursor=pointer]:
+              - /url: /admin/mensajes
+              - img [ref=e51]
+              - generic [ref=e53]: Mensajes
+        - generic [ref=e55]:
+          - generic [ref=e56]: Sistema
+          - generic [ref=e57]:
+            - link "Roles y Permisos" [ref=e58] [cursor=pointer]:
+              - /url: /admin/roles
+              - img [ref=e59]
+              - generic [ref=e61]: Roles y Permisos
+            - link "Analíticas" [ref=e62] [cursor=pointer]:
+              - /url: /admin/analiticas
+              - img [ref=e63]
+              - generic [ref=e65]: Analíticas
+    - main [ref=e66]:
+      - generic [ref=e69]:
+        - generic [ref=e71]:
+          - heading "Centro de Mensajes" [level=1] [ref=e72]
+          - paragraph [ref=e73]: Reportes, recomendaciones y contacto de usuarios
+        - generic [ref=e74]:
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - button "Todos" [ref=e77] [cursor=pointer]
+              - button "Pendientes" [ref=e78] [cursor=pointer]
+              - button "Leídos" [ref=e79] [cursor=pointer]
+              - button "Respondidos" [ref=e80] [cursor=pointer]
+            - generic [ref=e81]:
+              - generic [ref=e91] [cursor=pointer]:
+                - generic [ref=e92]: S
+                - generic [ref=e93]:
+                  - generic [ref=e94]:
+                    - generic [ref=e95]: Stefany
+                    - generic [ref=e96]: 25 de may de 2026, 04:16 p. m.
+                  - paragraph [ref=e97]: (Sin asunto)
+                  - paragraph [ref=e98]: "[SUGERENCIA] Eliminar la app"
+                - generic [ref=e99]: ✓
+              - generic [ref=e100] [cursor=pointer]:
+                - generic [ref=e101]: J
+                - generic [ref=e102]:
+                  - generic [ref=e103]:
+                    - generic [ref=e104]: Johan
+                    - generic [ref=e105]: 22 de may de 2026, 05:28 p. m.
+                  - paragraph [ref=e106]: (Sin asunto)
+                  - paragraph [ref=e107]: "[OTRO] En la sección de entornos en el apartado de empresas no funciona el servicio de guardado en el local storage"
+                - generic [ref=e108]: ✓
+              - generic [ref=e109] [cursor=pointer]:
+                - generic [ref=e110]: JH
+                - generic [ref=e111]:
+                  - generic [ref=e112]:
+                    - generic [ref=e113]: johan hernandez
+                    - generic [ref=e114]: 18 de may de 2026, 11:58 p. m.
+                  - paragraph [ref=e115]: (Sin asunto)
+                  - paragraph [ref=e116]: "[RECOMENDACIÓN DE ENTORNO] Nombre del entorno: testentorno Descripción: dsaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa Categoría: Ahorro"
+                - generic [ref=e117]: ✓
+              - generic [ref=e118] [cursor=pointer]:
+                - generic [ref=e119]: A
+                - generic [ref=e120]:
+                  - generic [ref=e121]:
+                    - generic [ref=e122]: Anon
+                    - generic [ref=e123]: 24 de abr de 2026, 10:39 a. m.
+                  - paragraph [ref=e124]: Hola
+                  - paragraph [ref=e125]: Mensaje anonimo de prueba de backend
+                - generic [ref=e126]: ✓
+              - generic [ref=e127] [cursor=pointer]:
+                - generic [ref=e128]: V
+                - generic [ref=e129]:
+                  - generic [ref=e130]:
+                    - generic [ref=e131]: Visitante
+                    - generic [ref=e132]: 24 de abr de 2026, 10:37 a. m.
+                  - paragraph [ref=e133]: Hola
+                  - paragraph [ref=e134]: Mensaje de prueba backend smoke test
+                - generic [ref=e135]: ✓
+              - generic [ref=e136] [cursor=pointer]:
+                - generic [ref=e137]: V
+                - generic [ref=e138]:
+                  - generic [ref=e139]:
+                    - generic [ref=e140]: Visitante
+                    - generic [ref=e141]: 24 de abr de 2026, 10:32 a. m.
+                  - paragraph [ref=e142]: Hola
+                  - paragraph [ref=e143]: Mensaje de prueba backend smoke test
+                - generic [ref=e144]: ✓
+          - generic [ref=e145]:
+            - generic [ref=e146]:
+              - generic [ref=e147]:
+                - generic [ref=e148]: S
+                - generic [ref=e149]:
+                  - paragraph [ref=e150]: Stefany
+                  - paragraph [ref=e151]: reporte@honeybalance.app
+              - button "Cerrar" [ref=e152] [cursor=pointer]:
+                - img [ref=e153]
+            - generic [ref=e155]:
+              - heading "(Sin asunto)" [level=2] [ref=e156]
+              - text: 25 de may de 2026, 04:16 p. m.
+            - generic [ref=e157]:
+              - generic [ref=e158]: Leído
+              - button "Marcar pendiente" [ref=e159] [cursor=pointer]:
+                - img [ref=e160]
+                - text: Marcar pendiente
+              - generic [ref=e162]: Respondido
+            - paragraph [ref=e164]: "[SUGERENCIA] Eliminar la app"
+            - generic [ref=e165]:
+              - paragraph [ref=e166]: Respuesta enviada el Invalid Date
+              - paragraph
+            - generic [ref=e167]:
+              - heading "Responder por email" [level=3] [ref=e168]
+              - generic [ref=e169]:
+                - generic [ref=e170]: Asunto
+                - textbox "Asunto del email" [ref=e171]: Respuesta a tu mensaje
+              - generic [ref=e172]:
+                - generic [ref=e173]: Mensaje
+                - textbox "Escribe tu respuesta aquí…" [ref=e174]
+              - button "Enviar respuesta por email" [disabled] [ref=e175]:
+                - img [ref=e176]
+                - text: Enviar respuesta por email

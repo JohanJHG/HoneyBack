@@ -1,0 +1,258 @@
+- main [ref=e23]:
+  - generic [ref=e55]:
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - img "HoneyBalance Logo" [ref=e61]
+        - generic [ref=e62]:
+          - heading "HoneyBalance" [level=1] [ref=e63]
+          - generic [ref=e64]: Administración ✦
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - button "Cambiar a modo oscuro" [ref=e67] [cursor=pointer]:
+            - img [ref=e68]
+          - button "Cambiar idioma" [ref=e70] [cursor=pointer]:
+            - img [ref=e71]
+          - button "Notificaciones" [ref=e73] [cursor=pointer]:
+            - img [ref=e74]
+        - generic [ref=e77] [cursor=pointer]:
+          - generic [ref=e78]:
+            - generic [ref=e79]: HoneyBalance
+            - generic [ref=e80]: Administrador
+          - generic [ref=e82]: HO
+          - img [ref=e85]
+    - complementary [ref=e87]:
+      - button "Colapsar sidebar" [ref=e88] [cursor=pointer]:
+        - img [ref=e89]
+      - navigation [ref=e91]:
+        - generic [ref=e92]:
+          - generic [ref=e93]: Principal
+          - generic [ref=e94]:
+            - link "Resumen" [ref=e95] [cursor=pointer]:
+              - /url: /admin
+              - img [ref=e96]
+              - generic [ref=e98]: Resumen
+            - link "Usuarios" [ref=e99] [cursor=pointer]:
+              - /url: /admin/usuarios
+              - img [ref=e100]
+              - generic [ref=e102]: Usuarios
+            - link "Mensajes" [ref=e103] [cursor=pointer]:
+              - /url: /admin/mensajes
+              - img [ref=e104]
+              - generic [ref=e106]: Mensajes
+        - generic [ref=e107]:
+          - generic [ref=e108]: Sistema
+          - generic [ref=e109]:
+            - link "Roles y Permisos" [ref=e110] [cursor=pointer]:
+              - /url: /admin/roles
+              - img [ref=e111]
+              - generic [ref=e113]: Roles y Permisos
+            - link "Analíticas" [ref=e115] [cursor=pointer]:
+              - /url: /admin/analiticas
+              - img [ref=e116]
+              - generic [ref=e118]: Analíticas
+    - main [ref=e119]:
+      - generic [ref=e122]:
+        - generic [ref=e124]:
+          - heading "Roles y Permisos" [level=1] [ref=e125]
+          - paragraph [ref=e126]: Define los niveles de acceso de cada tipo de usuario
+        - generic [ref=e127]:
+          - generic [ref=e128]:
+            - img [ref=e130]
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - heading "SuperAdmin" [level=3] [ref=e134]
+                - generic [ref=e135]: 1 usuario
+              - generic [ref=e136]:
+                - generic [ref=e137]: view admin
+                - generic [ref=e138]: view users
+                - generic [ref=e139]: view analiticas
+                - generic [ref=e140]: manage roles
+          - generic [ref=e141]:
+            - img [ref=e143]
+            - generic [ref=e145]:
+              - generic [ref=e146]:
+                - heading "Administrador" [level=3] [ref=e147]
+                - generic [ref=e148]: 3 usuarios
+              - generic [ref=e149]:
+                - generic [ref=e150]: manage personal
+                - generic [ref=e151]: manage empresarial
+                - generic [ref=e152]: view admin
+                - generic [ref=e153]: view users
+                - generic [ref=e154]: +1 más
+          - generic [ref=e155]:
+            - img [ref=e157]
+            - generic [ref=e159]:
+              - generic [ref=e160]:
+                - heading "Usuario" [level=3] [ref=e161]
+                - generic [ref=e162]: 21 usuarios
+              - generic [ref=e163]:
+                - generic [ref=e164]: manage personal
+                - generic [ref=e165]: manage empresarial
+        - generic [ref=e166]:
+          - generic [ref=e167]:
+            - heading "Matriz de Permisos" [level=3] [ref=e168]
+            - paragraph [ref=e169]: Visión completa de capacidades por rol
+          - table [ref=e171]:
+            - rowgroup [ref=e172]:
+              - row "Permiso SuperAdmin Administrador Usuario" [ref=e173]:
+                - columnheader "Permiso" [ref=e174]
+                - columnheader "SuperAdmin" [ref=e175]
+                - columnheader "Administrador" [ref=e176]
+                - columnheader "Usuario" [ref=e177]
+            - rowgroup [ref=e178]:
+              - row "Vista Personal Acceso completo a ingresos, metas y entornos personales —" [ref=e179]:
+                - cell "Vista Personal Acceso completo a ingresos, metas y entornos personales" [ref=e180]:
+                  - paragraph [ref=e181]: Vista Personal
+                  - paragraph [ref=e182]: Acceso completo a ingresos, metas y entornos personales
+                - cell "—" [ref=e183]:
+                  - generic [ref=e184]: —
+                - cell [ref=e185]:
+                  - img [ref=e186]
+                - cell [ref=e188]:
+                  - img [ref=e189]
+              - row "Vista Empresarial Acceso completo a flujo de caja, reportes y configuración empresarial —" [ref=e191]:
+                - cell "Vista Empresarial Acceso completo a flujo de caja, reportes y configuración empresarial" [ref=e192]:
+                  - paragraph [ref=e193]: Vista Empresarial
+                  - paragraph [ref=e194]: Acceso completo a flujo de caja, reportes y configuración empresarial
+                - cell "—" [ref=e195]:
+                  - generic [ref=e196]: —
+                - cell [ref=e197]:
+                  - img [ref=e198]
+                - cell [ref=e200]:
+                  - img [ref=e201]
+              - row "Panel Admin Acceso a vista de administración del sistema —" [ref=e203]:
+                - cell "Panel Admin Acceso a vista de administración del sistema" [ref=e204]:
+                  - paragraph [ref=e205]: Panel Admin
+                  - paragraph [ref=e206]: Acceso a vista de administración del sistema
+                - cell [ref=e207]:
+                  - img [ref=e208]
+                - cell [ref=e210]:
+                  - img [ref=e211]
+                - cell "—" [ref=e213]:
+                  - generic [ref=e214]: —
+              - row "Gestionar Usuarios Ver y administrar usuarios registrados —" [ref=e215]:
+                - cell "Gestionar Usuarios Ver y administrar usuarios registrados" [ref=e216]:
+                  - paragraph [ref=e217]: Gestionar Usuarios
+                  - paragraph [ref=e218]: Ver y administrar usuarios registrados
+                - cell [ref=e219]:
+                  - img [ref=e220]
+                - cell [ref=e222]:
+                  - img [ref=e223]
+                - cell "—" [ref=e225]:
+                  - generic [ref=e226]: —
+              - row "Analíticas Ver métricas y logs del sistema —" [ref=e227]:
+                - cell "Analíticas Ver métricas y logs del sistema" [ref=e228]:
+                  - paragraph [ref=e229]: Analíticas
+                  - paragraph [ref=e230]: Ver métricas y logs del sistema
+                - cell [ref=e231]:
+                  - img [ref=e232]
+                - cell [ref=e234]:
+                  - img [ref=e235]
+                - cell "—" [ref=e237]:
+                  - generic [ref=e238]: —
+              - row "Gestionar Roles Asignar y modificar roles de acceso — —" [ref=e239]:
+                - cell "Gestionar Roles Asignar y modificar roles de acceso" [ref=e240]:
+                  - paragraph [ref=e241]: Gestionar Roles
+                  - paragraph [ref=e242]: Asignar y modificar roles de acceso
+                - cell [ref=e243]:
+                  - img [ref=e244]
+                - cell "—" [ref=e246]:
+                  - generic [ref=e247]: —
+                - cell "—" [ref=e248]:
+                  - generic [ref=e249]: —
+        - generic [ref=e250]:
+          - generic [ref=e251]:
+            - heading "Asignación de Roles por Usuario" [level=3] [ref=e252]
+            - generic [ref=e253]: 25 usuarios en total
+          - generic [ref=e254]:
+            - generic [ref=e255]:
+              - generic [ref=e256]:
+                - generic [ref=e257]: JH
+                - generic [ref=e258]:
+                  - paragraph [ref=e259]: Johan hernandez
+                  - paragraph [ref=e260]: t@t.com
+              - generic [ref=e261]:
+                - generic [ref=e262]: Administrador
+                - button "Cambiar rol" [ref=e263] [cursor=pointer]:
+                  - img [ref=e264]
+            - generic [ref=e266]:
+              - generic [ref=e267]:
+                - generic [ref=e268]: SU
+                - generic [ref=e269]:
+                  - paragraph [ref=e270]: Smoke User
+                  - paragraph [ref=e271]: smoke_1040161409@example.com
+              - generic [ref=e272]:
+                - generic [ref=e273]: Usuario
+                - button "Cambiar rol" [ref=e274] [cursor=pointer]:
+                  - img [ref=e275]
+            - generic [ref=e277]:
+              - generic [ref=e278]:
+                - generic [ref=e279]: SU
+                - generic [ref=e280]:
+                  - paragraph [ref=e281]: Smoke User
+                  - paragraph [ref=e282]: smoke_1775850573@example.com
+              - generic [ref=e283]:
+                - generic [ref=e284]: Usuario
+                - button "Cambiar rol" [ref=e285] [cursor=pointer]:
+                  - img [ref=e286]
+            - generic [ref=e288]:
+              - generic [ref=e289]:
+                - generic [ref=e290]: DU
+                - generic [ref=e291]:
+                  - paragraph [ref=e292]: Dbg User
+                  - paragraph [ref=e293]: dbg_967231199@example.com
+              - generic [ref=e294]:
+                - generic [ref=e295]: Usuario
+                - button "Cambiar rol" [ref=e296] [cursor=pointer]:
+                  - img [ref=e297]
+            - generic [ref=e299]:
+              - generic [ref=e300]:
+                - generic [ref=e301]: SU
+                - generic [ref=e302]:
+                  - paragraph [ref=e303]: Smoke User
+                  - paragraph [ref=e304]: smoke_806173517@example.com
+              - generic [ref=e305]:
+                - generic [ref=e306]: Usuario
+                - button "Cambiar rol" [ref=e307] [cursor=pointer]:
+                  - img [ref=e308]
+            - generic [ref=e310]:
+              - generic [ref=e311]:
+                - generic [ref=e312]: DU
+                - generic [ref=e313]:
+                  - paragraph [ref=e314]: Dbg2 User
+                  - paragraph [ref=e315]: dbg2_1890338500@example.com
+              - generic [ref=e316]:
+                - generic [ref=e317]: Usuario
+                - button "Cambiar rol" [ref=e318] [cursor=pointer]:
+                  - img [ref=e319]
+            - generic [ref=e321]:
+              - generic [ref=e322]:
+                - generic [ref=e323]: SU
+                - generic [ref=e324]:
+                  - paragraph [ref=e325]: Smoke User
+                  - paragraph [ref=e326]: smoke_1143460115@example.com
+              - generic [ref=e327]:
+                - generic [ref=e328]: Usuario
+                - button "Cambiar rol" [ref=e329] [cursor=pointer]:
+                  - img [ref=e330]
+            - generic [ref=e332]:
+              - generic [ref=e333]:
+                - generic [ref=e334]: CU
+                - generic [ref=e335]:
+                  - paragraph [ref=e336]: Case User
+                  - paragraph [ref=e337]: case_2035918427@example.com
+              - generic [ref=e338]:
+                - generic [ref=e339]: Usuario
+                - button "Cambiar rol" [ref=e340] [cursor=pointer]:
+                  - img [ref=e341]
+          - generic [ref=e343]:
+            - generic [ref=e344]: Página 1 de 4
+            - generic [ref=e345]:
+              - button [disabled] [ref=e346]:
+                - img [ref=e347]
+              - button "1" [ref=e349] [cursor=pointer]
+              - button "2" [ref=e350] [cursor=pointer]
+              - button "3" [ref=e351] [cursor=pointer]
+              - button "4" [ref=e352] [cursor=pointer]
+              - button [ref=e353] [cursor=pointer]:
+                - img [ref=e354]

@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+.claude
+.claude/skills
+skills-lock.json
+.playwright-mcp
 # User-specific files
 *.rsuser
 *.suo
