@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "Pandas Data Analysis": {
+      "source": "pluginagentmarketplace/custom-plugin-python",
+      "sourceType": "github",
+      "skillPath": "skills/pandas-data-analysis/SKILL.md",
+      "computedHash": "33ee9dcf6d5ea38d65bb59c4c6c1337d90688a71829d76cd781de403e68dd533"
+    },
     "angular-best-practices": {
       "source": "alfredoperez/angular-best-practices",
       "sourceType": "github",
@@ -13,6 +19,12 @@
       "skillPath": "skills/angular-tailwind/SKILL.md",
       "computedHash": "adc154875472bacbb318caae17819ef0d717cacf878af97167fc7ddcc8e25234"
     },
+    "dataverse-python-advanced-patterns": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/dataverse-python-advanced-patterns/SKILL.md",
+      "computedHash": "dd4f65b62c3b702c7dfc14a4e19caaa9ab3515e87a1d7e110482d9ba19469bd0"
+    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
@@ -24,6 +36,12 @@
       "sourceType": "github",
       "skillPath": "skills/frontend-design/SKILL.md",
       "computedHash": "93f53fd1c0352d3d7ec17b8f73d7351bf76f4821e55d123c9d2abc2c53ba48e4"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "ec3199f460c3a6fade94e753d5dfe2b46d0c770e64670a5954260d94b39311dd"
     },
     "neon-postgres": {
       "source": "neondatabase/agent-skills",
