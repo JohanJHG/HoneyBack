@@ -33,6 +33,8 @@ public partial class HoneyBalanceDbContext : DbContext
 
     public virtual DbSet<RefreshToken> RefreshTokens { get; set; }
 
+    public virtual DbSet<RegistroLogin> RegistrosLogin { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // NOTA: En runtime, la conexión se configura en Program.cs vía AddDbContext
@@ -317,6 +319,32 @@ public partial class HoneyBalanceDbContext : DbContext
                 .HasForeignKey(e => e.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_RefreshTokens_Usuarios");
+        });
+
+        modelBuilder.Entity<RegistroLogin>(entity =>
+        {
+            entity.HasKey(e => e.RegistroLoginId).HasName("PK_RegistrosLogin");
+
+            entity.ToTable("RegistrosLogin");
+
+            entity.HasIndex(e => e.UsuarioId, "IDX_RegistrosLogin_Usuario");
+            entity.HasIndex(e => e.FechaLogin, "IDX_RegistrosLogin_Fecha");
+            entity.HasIndex(e => new { e.UsuarioId, e.FechaLogin }, "IDX_RegistrosLogin_Usuario_Fecha");
+
+            entity.Property(e => e.RegistroLoginId).HasColumnName("RegistroLoginID");
+            entity.Property(e => e.UsuarioId).HasColumnName("UsuarioID");
+            entity.Property(e => e.FechaLogin)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.Ip)
+                .HasMaxLength(45)
+                .HasColumnName("IP");
+
+            entity.HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_RegistrosLogin_Usuarios");
         });
 
         OnModelCreatingPartial(modelBuilder);
