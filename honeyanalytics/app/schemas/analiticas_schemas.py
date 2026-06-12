@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class AnaliticasKpis(BaseModel):
@@ -17,3 +17,12 @@ class RetentionPoint(BaseModel):
 class UsageSplit(BaseModel):
     personal: float
     empresarial: float
+
+
+class ChurnedUser(BaseModel):
+    user_id: int
+    nombre: str
+    email: str
+    ultima_actividad: Optional[str]
+    dias_inactivo: int
+    criterio: str

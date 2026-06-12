@@ -44,12 +44,12 @@ async def get_user_growth(db: AsyncSession, months: int = 6) -> List[ChartPoint]
 async def get_daily_activity(db: AsyncSession, days: int = 7) -> List[ChartPoint]:
     result = await db.execute(text(f"""
         SELECT
-            TO_CHAR(DATE_TRUNC('day', "FechaCreacion"), 'Dy') AS dia,
+            TO_CHAR(DATE_TRUNC('day', "FechaLogin"), 'Dy') AS dia,
             COUNT(*) AS total
-        FROM "Sesiones"
-        WHERE "FechaCreacion" >= NOW() - INTERVAL '{int(days)} days'
-        GROUP BY DATE_TRUNC('day', "FechaCreacion"), dia
-        ORDER BY DATE_TRUNC('day', "FechaCreacion")
+        FROM "RegistrosLogin"
+        WHERE "FechaLogin" >= NOW() - INTERVAL '{int(days)} days'
+        GROUP BY DATE_TRUNC('day', "FechaLogin"), dia
+        ORDER BY DATE_TRUNC('day', "FechaLogin")
     """))
     rows = result.mappings().all()
     return [ChartPoint(label=r["dia"], count=r["total"]) for r in rows]

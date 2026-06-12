@@ -8,29 +8,29 @@ from app.schemas.analiticas_schemas import AnaliticasKpis, RetentionPoint, Usage
 async def get_analiticas_kpis(db: AsyncSession) -> AnaliticasKpis:
     mau_result = await db.execute(text("""
         SELECT COUNT(DISTINCT "UsuarioID") AS mau
-        FROM "Sesiones"
-        WHERE "FechaCreacion" >= NOW() - INTERVAL '30 days'
+        FROM "RegistrosLogin"
+        WHERE "FechaLogin" >= NOW() - INTERVAL '30 days'
     """))
     mau = mau_result.scalar() or 0
 
     dau_result = await db.execute(text("""
         SELECT COUNT(DISTINCT "UsuarioID") AS dau
-        FROM "Sesiones"
-        WHERE "FechaCreacion" >= NOW() - INTERVAL '1 day'
+        FROM "RegistrosLogin"
+        WHERE "FechaLogin" >= NOW() - INTERVAL '1 day'
     """))
     dau = dau_result.scalar() or 0
 
     churn_result = await db.execute(text("""
         WITH prev AS (
             SELECT COUNT(DISTINCT "UsuarioID") AS cnt
-            FROM "Sesiones"
-            WHERE "FechaCreacion" >= NOW() - INTERVAL '60 days'
-              AND "FechaCreacion" <  NOW() - INTERVAL '30 days'
+            FROM "RegistrosLogin"
+            WHERE "FechaLogin" >= NOW() - INTERVAL '60 days'
+              AND "FechaLogin" <  NOW() - INTERVAL '30 days'
         ),
         curr AS (
             SELECT COUNT(DISTINCT "UsuarioID") AS cnt
-            FROM "Sesiones"
-            WHERE "FechaCreacion" >= NOW() - INTERVAL '30 days'
+            FROM "RegistrosLogin"
+            WHERE "FechaLogin" >= NOW() - INTERVAL '30 days'
         )
         SELECT
             prev.cnt AS prev_cnt,
@@ -73,9 +73,9 @@ async def get_retention(db: AsyncSession, months: int = 12) -> List[RetentionPoi
     users_rows = users_result.mappings().all()
 
     sessions_result = await db.execute(text(f"""
-        SELECT DISTINCT "UsuarioID", DATE_TRUNC('month', "FechaCreacion") AS mes
-        FROM "Sesiones"
-        WHERE "FechaCreacion" >= NOW() - INTERVAL '{int(months)} months'
+        SELECT DISTINCT "UsuarioID", DATE_TRUNC('month', "FechaLogin") AS mes
+        FROM "RegistrosLogin"
+        WHERE "FechaLogin" >= NOW() - INTERVAL '{int(months)} months'
     """))
     sessions_rows = sessions_result.mappings().all()
 
@@ -128,3 +128,38 @@ async def get_usage_split(db: AsyncSession) -> UsageSplit:
         personal=round(personal / total * 100, 1),
         empresarial=round(empresarial / total * 100, 1),
     )
+
+
+async def get_churn_detail(db: AsyncSession, inactivity_days: int = 30) -> list:
+    result = await db.execute(text(f"""
+        SELECT
+            u."UsuarioID" AS user_id,
+            u."NombreCompleto" AS nombre,
+            u."Email" AS email,
+            MAX(rl."FechaLogin") AS ultima_actividad,
+            CASE
+                WHEN MAX(rl."FechaLogin") IS NULL
+                    THEN EXTRACT(DAY FROM NOW() - u."FechaRegistro")::int
+                ELSE EXTRACT(DAY FROM NOW() - MAX(rl."FechaLogin"))::int
+            END AS dias_inactivo
+        FROM "Usuarios" u
+        LEFT JOIN "RegistrosLogin" rl ON rl."UsuarioID" = u."UsuarioID"
+        WHERE u."Activo" = true
+        GROUP BY u."UsuarioID", u."NombreCompleto", u."Email", u."FechaRegistro"
+        HAVING
+            MAX(rl."FechaLogin") IS NULL
+            OR MAX(rl."FechaLogin") < NOW() - INTERVAL '{int(inactivity_days)} days'
+        ORDER BY dias_inactivo DESC
+    """))
+    rows = result.mappings().all()
+    return [
+        {
+            "user_id": r["user_id"],
+            "nombre": r["nombre"],
+            "email": r["email"],
+            "ultima_actividad": r["ultima_actividad"].isoformat() if r["ultima_actividad"] else None,
+            "dias_inactivo": int(r["dias_inactivo"]) if r["dias_inactivo"] is not None else 0,
+            "criterio": f"Sin actividad por {int(r['dias_inactivo'] or 0)} días (umbral: {inactivity_days} días)",
+        }
+        for r in rows
+    ]
