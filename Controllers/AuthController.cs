@@ -125,6 +125,12 @@ namespace HoneyBack.Controllers
                 CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                 IsRevoked = false
             });
+            _context.RegistrosLogin.Add(new HoneyBack.Models.RegistroLogin
+            {
+                UsuarioId = usuario.UsuarioId,
+                FechaLogin = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                Ip = ip
+            });
             await _context.SaveChangesAsync();
 
             Response.Cookies.Append("refresh_token", refreshTokenValue, new CookieOptions
@@ -478,6 +484,12 @@ namespace HoneyBack.Controllers
                     ExpiresAt = DateTime.SpecifyKind(DateTime.UtcNow.AddDays(7), DateTimeKind.Unspecified),
                     CreatedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                     IsRevoked = false
+                });
+                _context.RegistrosLogin.Add(new HoneyBack.Models.RegistroLogin
+                {
+                    UsuarioId = usuario.UsuarioId,
+                    FechaLogin = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                    Ip = ip
                 });
                 await _context.SaveChangesAsync();
 
