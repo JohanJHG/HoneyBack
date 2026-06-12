@@ -93,6 +93,7 @@ jobs:
             if [ "$HEALTH" = "healthy" ]; then
               echo "Analytics OK — health check pasado"
             else
-              echo "ADVERTENCIA — Analytics status: $HEALTH. Logs recientes:"
+              echo "ERROR — Analytics status: $HEALTH. Logs recientes:"
               docker compose logs honeyanalytics --tail=30
+              exit 1
             fi
