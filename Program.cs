@@ -50,6 +50,7 @@ builder.Services.AddScoped<IMetasAhorroService, MetasAhorroService>();
 builder.Services.AddScoped<IConfiguracionesUsuarioService, ConfiguracionesUsuarioService>();
 builder.Services.AddScoped<ITransaccionesService, TransaccionesService>();
 builder.Services.AddScoped<IEntornosPersonalesService, EntornosPersonalesService>();
+builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
 // JWT Token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();

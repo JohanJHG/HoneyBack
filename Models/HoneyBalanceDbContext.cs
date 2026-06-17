@@ -35,6 +35,8 @@ public partial class HoneyBalanceDbContext : DbContext
 
     public virtual DbSet<RegistroLogin> RegistrosLogin { get; set; }
 
+    public virtual DbSet<OnboardingUsuario> OnboardingUsuarios { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         // NOTA: En runtime, la conexión se configura en Program.cs vía AddDbContext
@@ -345,6 +347,33 @@ public partial class HoneyBalanceDbContext : DbContext
                 .HasForeignKey(e => e.UsuarioId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_RegistrosLogin_Usuarios");
+        });
+
+        modelBuilder.Entity<OnboardingUsuario>(entity =>
+        {
+            entity.HasKey(e => e.OnboardingId).HasName("PK_OnboardingUsuarios");
+
+            entity.ToTable("OnboardingUsuarios");
+
+            entity.HasIndex(e => e.UsuarioId, "UQ_OnboardingUsuarios_Usuario").IsUnique();
+
+            entity.Property(e => e.OnboardingId).HasColumnName("OnboardingID");
+            entity.Property(e => e.UsuarioId).HasColumnName("UsuarioID");
+            entity.Property(e => e.Dismissed).HasDefaultValue(false);
+            entity.Property(e => e.DismissedAt).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.CompletedAt).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.FechaCreacion)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
+            entity.Property(e => e.FechaActualizacion)
+                .HasDefaultValueSql("now()")
+                .HasColumnType("timestamp without time zone");
+
+            entity.HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_OnboardingUsuarios_Usuarios");
         });
 
         OnModelCreatingPartial(modelBuilder);

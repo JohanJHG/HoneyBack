@@ -18,7 +18,7 @@ public class GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExcep
             {
                 ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 ctx.Response.ContentType = "application/json";
-                await ctx.Response.WriteAsJsonAsync(new { mensaje = "Error interno del servidor." });
+                await ctx.Response.WriteAsJsonAsync(new { mensaje = "MIDDLEWARE_V2_" + ex.GetType().Name + ": " + ex.Message });
             }
         }
     }
