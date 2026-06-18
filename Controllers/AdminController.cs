@@ -85,12 +85,13 @@ namespace HoneyBack.Controllers
         public async Task<ActionResult<MensajesPageDto>> ObtenerMensajes(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
-            [FromQuery] bool? leido = null)
+            [FromQuery] bool? leido = null,
+            [FromQuery] bool? respondido = null)
         {
             if (page < 1) page = 1;
             if (pageSize < 1 || pageSize > 100) pageSize = 20;
 
-            var resultado = await _adminService.ObtenerMensajesPaginadoAsync(page, pageSize, leido);
+            var resultado = await _adminService.ObtenerMensajesPaginadoAsync(page, pageSize, leido, respondido);
             return Ok(resultado);
         }
 

@@ -108,12 +108,20 @@ namespace HoneyBack.Servicios
 
         // ── Mensajes ─────────────────────────────────────────────────────────
 
-        public async Task<MensajesPageDto> ObtenerMensajesPaginadoAsync(int page, int pageSize, bool? leido)
+        public async Task<MensajesPageDto> ObtenerMensajesPaginadoAsync(int page, int pageSize, bool? leido, bool? respondido = null)
         {
             var query = _context.MensajesContactos.AsQueryable();
 
             if (leido.HasValue)
-                query = query.Where(m => m.Leido == leido.Value);
+                // Leido IS NULL en DB = mensaje nunca marcado = pendiente (tratar como false)
+                query = leido.Value
+                    ? query.Where(m => m.Leido == true)
+                    : query.Where(m => m.Leido != true);
+
+            if (respondido.HasValue)
+                query = respondido.Value
+                    ? query.Where(m => m.Respuesta != null)
+                    : query.Where(m => m.Respuesta == null);
 
             var total = await query.CountAsync();
             var items = await query
