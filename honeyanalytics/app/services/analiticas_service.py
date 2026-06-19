@@ -5,7 +5,7 @@ from typing import List
 from app.schemas.analiticas_schemas import AnaliticasKpis, RetentionPoint, UsageSplit
 
 
-async def get_analiticas_kpis(db: AsyncSession) -> AnaliticasKpis:
+async def get_analiticas_kpis(db: AsyncSession, inactivity_days: int = 30) -> AnaliticasKpis:
     mau_result = await db.execute(text("""
         SELECT COUNT(DISTINCT "UsuarioID") AS mau
         FROM "RegistrosLogin"
@@ -20,30 +20,26 @@ async def get_analiticas_kpis(db: AsyncSession) -> AnaliticasKpis:
     """))
     dau = dau_result.scalar() or 0
 
-    churn_result = await db.execute(text("""
-        WITH prev AS (
-            SELECT COUNT(DISTINCT "UsuarioID") AS cnt
-            FROM "RegistrosLogin"
-            WHERE "FechaLogin" >= NOW() - INTERVAL '60 days'
-              AND "FechaLogin" <  NOW() - INTERVAL '30 days'
-        ),
-        curr AS (
-            SELECT COUNT(DISTINCT "UsuarioID") AS cnt
-            FROM "RegistrosLogin"
-            WHERE "FechaLogin" >= NOW() - INTERVAL '30 days'
-        )
+    churn_result = await db.execute(text(f"""
         SELECT
-            prev.cnt AS prev_cnt,
-            curr.cnt AS curr_cnt
-        FROM prev, curr
+            COUNT(DISTINCT u."UsuarioID") FILTER (
+                WHERE u."UsuarioID" NOT IN (
+                    SELECT DISTINCT "UsuarioID"
+                    FROM "RegistrosLogin"
+                    WHERE "FechaLogin" >= NOW() - INTERVAL '{int(inactivity_days)} days'
+                )
+            )::float AS churned,
+            COUNT(DISTINCT u."UsuarioID")::float AS total
+        FROM "Usuarios" u
+        WHERE u."Activo" = true
     """))
     churn_row = churn_result.mappings().one_or_none()
     churn_rate = 0.0
-    if churn_row and churn_row["prev_cnt"] and churn_row["prev_cnt"] > 0:
-        churn_rate = round(
-            max(0.0, (churn_row["prev_cnt"] - churn_row["curr_cnt"]) / churn_row["prev_cnt"] * 100),
-            1,
-        )
+    if churn_row:
+        churned = float(churn_row["churned"] or 0)
+        total = float(churn_row["total"] or 0)
+        if total > 0:
+            churn_rate = round(churned / total * 100, 1)
 
     session_result = await db.execute(text("""
         SELECT AVG(

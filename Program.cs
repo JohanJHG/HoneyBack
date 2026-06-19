@@ -1,3 +1,4 @@
+using HoneyBack.Data.Seeders;
 using HoneyBack.Middleware;
 using HoneyBack.Models;
 using HoneyBack.Servicios;
@@ -52,6 +53,7 @@ builder.Services.AddScoped<ITransaccionesService, TransaccionesService>();
 builder.Services.AddScoped<IEntornosPersonalesService, EntornosPersonalesService>();
 builder.Services.AddScoped<IOnboardingService, OnboardingService>();
 builder.Services.AddScoped<IAdminService, AdminService>();
+builder.Services.AddScoped<AnalyticsSeedService>();
 // JWT Token service
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 // reCAPTCHA validation service
@@ -360,6 +362,15 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+if (args.Contains("--seed"))
+{
+    using var seedScope = app.Services.CreateScope();
+    var seeder = seedScope.ServiceProvider.GetRequiredService<AnalyticsSeedService>();
+    await seeder.SeedAsync();
+    Console.WriteLine("Seed completado.");
+    return;
+}
 
 app.Run();
 

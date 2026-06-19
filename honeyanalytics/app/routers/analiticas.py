@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from app.auth import require_admin_or_superadmin
@@ -11,10 +11,11 @@ router = APIRouter(prefix="/analytics/analiticas", tags=["analiticas"])
 
 @router.get("/kpis", response_model=AnaliticasKpis)
 async def analiticas_kpis(
+    inactivity_days: int = Query(default=30, ge=7, le=180),
     db: AsyncSession = Depends(get_db),
     _: dict = Depends(require_admin_or_superadmin),
 ):
-    return await analiticas_service.get_analiticas_kpis(db)
+    return await analiticas_service.get_analiticas_kpis(db, inactivity_days)
 
 
 @router.get("/retention", response_model=List[RetentionPoint])

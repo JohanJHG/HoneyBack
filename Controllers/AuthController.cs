@@ -110,6 +110,8 @@ namespace HoneyBack.Controllers
                 UsuarioId = usuario.UsuarioId,
                 TokenSesion = token,
                 FechaExpiracion = DateTime.SpecifyKind(expiresAt, DateTimeKind.Unspecified),
+                FechaCreacion = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                Activa = true,
                 Ipaddress = ip
             };
             await _sesionesService.CrearAsync(sesion);
@@ -278,7 +280,10 @@ namespace HoneyBack.Controllers
 
             var sesion = await _sesionesService.ObtenerPorTokenAsync(token);
             if (sesion != null)
-                await _sesionesService.EliminarAsync(sesion.SesionId);
+            {
+                sesion.Activa = false;
+                await _context.SaveChangesAsync();
+            }
 
             _logger.LogInformation("Logout: usuarioId={UserId} ip={IP}", userId, ip);
             return Ok(new { message = "Sesión cerrada exitosamente" });
@@ -471,6 +476,8 @@ namespace HoneyBack.Controllers
                     UsuarioId = usuario.UsuarioId,
                     TokenSesion = token,
                     FechaExpiracion = DateTime.SpecifyKind(expiresAt, DateTimeKind.Unspecified),
+                    FechaCreacion = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                    Activa = true,
                     Ipaddress = ip
                 };
                 await _sesionesService.CrearAsync(sesion);

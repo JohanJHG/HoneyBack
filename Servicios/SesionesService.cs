@@ -81,11 +81,21 @@ namespace HoneyBack.Servicios
         public async Task LimpiarSesionesExpiradasAsync()
         {
             var ahora = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
-            var sesionesExpiradas = await _context.Sesiones
-                .Where(s => s.FechaExpiracion < ahora)
-                .ToListAsync();
+            var limite90 = ahora.AddDays(-90);
 
-            _context.Sesiones.RemoveRange(sesionesExpiradas);
+            // Soft-delete: sesiones recientes expiradas → marcar Activa=false para analytics
+            var recientes = await _context.Sesiones
+                .Where(s => s.FechaExpiracion < ahora && s.Activa != false && s.FechaCreacion != null)
+                .ToListAsync();
+            foreach (var s in recientes)
+                s.Activa = false;
+
+            // Hard-delete: sesiones muy antiguas (>90 días) o sin FechaCreacion (legacy)
+            var antiguas = await _context.Sesiones
+                .Where(s => s.FechaCreacion == null || s.FechaCreacion < limite90)
+                .ToListAsync();
+            _context.Sesiones.RemoveRange(antiguas);
+
             await _context.SaveChangesAsync();
         }
     }
