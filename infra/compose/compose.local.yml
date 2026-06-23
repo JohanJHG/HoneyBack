@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: honeydb
+      POSTGRES_USER: honeyuser
+      POSTGRES_PASSWORD: honeypass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U honeyuser -d honeydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  honeyback_api:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: honeyback_api:local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      Swagger__Enabled: "true"
+      Database__ApplyMigrationsAtStartup: "true"
+      Cors__AllowedOriginsCsv: http://localhost:4200,http://localhost:4201,http://localhost:3000
+      ConnectionStrings__conexion: postgresql://honeyuser:honeypass@postgres:5432/honeydb?sslmode=disable
+      Jwt__Key: ${JWT_KEY}
+      Jwt__Issuer: ${JWT_ISSUER:-HoneyBack}
+      Jwt__Audience: ${JWT_AUDIENCE:-HoneyBack}
+      Jwt__ExpiresInMinutes: ${JWT_EXPIRES_MINUTES:-60}
+      Resend__ApiKey: ${RESEND_API_KEY:-}
+      Resend__FromEmail: ${RESEND_FROM_EMAIL:-noreply@honeybalance.online}
+      Resend__FromName: ${RESEND_FROM_NAME:-HoneyBalance}
+    ports:
+      - "5291:80"
+
+  honeybalance_web:
+    build:
+      context: ${HONEYBALANCE_FRONTEND_CONTEXT}
+      dockerfile: ${HONEYBALANCE_FRONTEND_DOCKERFILE:-Dockerfile}
+    image: honeybalance_web:local
+    ports:
+      - "4200:80"
+
+  honeyanalytics:
+    build:
+      context: ../../honeyanalytics
+      dockerfile: Dockerfile
+    image: honeyanalytics:local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      RELOAD: "true"
+      DATABASE_URL: postgresql+asyncpg://honeyuser:honeypass@postgres:5432/honeydb
+      JWT_SECRET: ${JWT_KEY}
+      JWT_ISSUER: ${JWT_ISSUER:-HoneyBack}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-HoneyBack}
+    ports:
+      - "8000:8000"
+
+volumes:
+  postgres_data:
