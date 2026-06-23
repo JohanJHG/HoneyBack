@@ -2,7 +2,7 @@
 
 Esta guia explica como levantar el proyecto completo desde cero en una maquina nueva. No se requiere experiencia previa con las tecnologias del proyecto; solo se necesita seguir los pasos en orden.
 
----
+----
 
 ## Indice
 
