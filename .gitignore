@@ -3,7 +3,7 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-.claude
+.claude/
 .claude/skills
 skills-lock.json
 .playwright-mcp
@@ -368,3 +368,18 @@ FodyWeavers.xsd
 
 # Docker environment variables (contiene contraseñas)
 .env
+
+# Capturas de pantalla locales
+capturasPantalla/
+*.png
+
+# Backups de base de datos y migraciones
+backups/
+*.bak
+
+# Archivos de caché del IDE
+*.lscache
+
+# Tareas y documentos de trabajo local
+yaml/
+docs/
